@@ -1,0 +1,84 @@
+---
+#
+#  This is based on the lambda and lambda policy testcases out of Ansible's integration tests
+#
+#  As such it is licensed under the GPLv3 with copyright belonging to various including:
+#
+#  * Michael De La Rue
+#  * William Thames
+#  * The Ansible Project
+#
+#  Further work on this done as paid work by Michael De La Rue for paddle.com.
+#
+
+
+# Security comment:
+#
+# the username and password here are generated locally in this file 
+#
+
+# BUG: security tokens are commented out in this code; Instead they
+# should be nulled if an empty token comes in.  Otherwise they get
+# passed on to the module as the empty string and everything breaks.
+
+- hosts: localhost
+  vars:
+    credentials_file: "aws_credentials_{{aws_account_name}}.yml"
+    admin_credentials_file: "aws_credentials_{{aws_account_name}}_iam_admin.yml"
+    aws_account_name: michael
+    aws_admin_connection_info: &aws_admin_connection_info
+      aws_region: '{{ aws_region }}'
+      aws_access_key: '{{ admin_aws_access_key }}'
+      aws_secret_key: '{{ admin_aws_secret_key }}'
+      # security_token: '{{ admin_security_token }}'
+    test_key: "{{ lookup('password', '.anslk_random_testkey chars=ascii_lowercase,digits length=15') }}"
+  vars_files:
+    # the following isloaded with include_vars so it can appear after we
+    # have started
+    # - "{{ backup_credentials_file }}" 
+    - "{{ credentials_file }}"
+    - "{{ admin_credentials_file }}"
+  tasks:
+    - tags:
+        - always
+      block:
+        - name: set up AWS credentials and test key
+          set_fact: 
+            aws_connection_info: &aws_connection_info
+              aws_region: '{{ aws_region }}'
+              aws_access_key: '{{ aws_access_key }}'
+              aws_secret_key: '{{ aws_secret_key }}'
+              security_token: '{{ security_token }}'
+
+
+    - tags:
+        - given that I have configured a base path in SSM
+      set_fact: 
+          ssm_base_path: "test/system-backup/backup-test-{{test_key}}"
+
+
+    - tags:
+        - given I have an S3 bucket for backup testing
+      block:
+          - name: create the s3 bucket
+            s3_bucket:
+              name: "test-backup-{{test_key}}"
+              state: present
+              <<: *aws_connection_info
+
+          # what follows sets up the credentials to access the S3
+          # bucket.  For now it's logical to put it as part of s3
+          # bucket creation though that will change later.
+
+          - copy:
+              content: |
+                AWS_REGION={{ aws_region }}
+                AWS_ACCESS_KEY_ID={{aws_access_key}}
+                AWS_SECRET_ACCESS_KEY={{aws_secret_key}}
+                # security_token:
+              dest: /tmp/sh_output
+
+          - fetch:
+              src: /tmp/sh_output
+              dest: "aws_credentials.env"
+              flat: yes
