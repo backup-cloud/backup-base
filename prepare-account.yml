@@ -24,22 +24,23 @@
 
     - name: create IAM definitions
       block:
-       - iam_user:
-            name: "{{ backup_test_user }}"
-            # FullAccess should be eliminated but AWS doesnt have any
-            # standard limited policies that match so we will need to
-            # create our own policies for that.  Do it later.
-            managed_policy:
-              - arn:aws:iam::aws:policy/AWSLambdaFullAccess
-              - arn:aws:iam::aws:policy/IAMFullAccess
-              - arn:aws:iam::aws:policy/AmazonEC2FullAccess
-            state: present
-            <<: *admin_aws_connection_info
+        - iam_user:
+             name: "{{ backup_test_user }}"
+             # FullAccess should be eliminated but AWS doesnt have any
+             # standard limited policies that match so we will need to
+             # create our own policies for that.  Do it later.
+             managed_policy:
+               - arn:aws:iam::aws:policy/AWSLambdaFullAccess
+               - arn:aws:iam::aws:policy/IAMFullAccess
+               - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+             state: present
+             <<: *admin_aws_connection_info
 
     - name: set up access keys
       block:
         - shell: |
-            for i in $(aws iam list-access-keys  --user-name={{ backup_test_user }} | grep AccessKeyId | sed -e 's/",//' -e 's/.*"//' ) 
+            for i in $(aws iam list-access-keys  --user-name={{ backup_test_user }} \
+               | grep AccessKeyId | sed -e 's/",//' -e 's/.*"//' ) 
             do
               aws iam delete-access-key  --user-name={{backup_test_user}} --access-key-id=$i
             done

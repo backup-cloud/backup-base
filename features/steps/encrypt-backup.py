@@ -1,5 +1,5 @@
 import sys
-import subprocess
+from subprocess import run
 import gpg
 from tempfile import TemporaryDirectory
 import random
@@ -7,14 +7,16 @@ import string
 import boto3
 from dotenv import load_dotenv
 
+
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
 
 def call_ansible_step(step_name, playbook="test-system.yml", extra_vars=None):
     """call_ansible_step - run a step by running a matching ansible tag"""
 
-    proc_res = subprocess.run(args=["ansible-playbook", "--list-tags", playbook],
-                              capture_output=True)
+    proc_res = run(args=["ansible-playbook", "--list-tags", playbook],
+                   capture_output=True)
     if proc_res.returncode > 0:
         eprint("Ansible STDOUT:\n", proc_res.stdout, "Ansible STDERR:\n", proc_res.stderr)
         raise Exception("ansible failed while listing tags")
@@ -31,7 +33,7 @@ def call_ansible_step(step_name, playbook="test-system.yml", extra_vars=None):
     ansible_args = ["ansible-playbook", "-vvv", "--tags", step_name, playbook]
     if extra_vars is not None:
         ansible_args.extend(["--extra-vars", extra_vars])
-    proc_res = subprocess.run(args=ansible_args, capture_output=True)
+    proc_res = run(args=ansible_args, capture_output=True)
     eprint("Ansible STDOUT:\n", proc_res.stdout, "Ansible STDERR:\n", proc_res.stderr)
     if proc_res.returncode > 0:
         raise Exception("ansible failed")
@@ -63,8 +65,8 @@ def step_impl(context):
 @given(u'that private public key pair is stored in the bucket')
 def step_impl(context):
     # Envfile is created when the S3 bucket is set up with credentials
-    # that have access to the bucket. 
-    env_path="./aws_credentials.env"
+    # that have access to the bucket.
+    env_path = "./aws_credentials.env"
     load_dotenv(dotenv_path=env_path)
 
     with open(".anslk_random_testkey") as f:
@@ -77,11 +79,12 @@ def step_impl(context):
     s3_key = "config/" + test_key + "example.com.pub"
 
     bucket.put_object(Key=s3_key)
- 
+
     context.test_key = test_key
     context.backup_bucket = bucket
     # use the same bucket for now for simplicity
     context.store_bucket = bucket
+
 
 @given(u'that I have configured a public key and a reference to it')
 def step_impl(context):
@@ -89,27 +92,26 @@ def step_impl(context):
           given I have an S3 bucket for backup testing
             and I have a private public key pair
             and that private public key pair is stored in the bucket
-    """
-    )
-
-
+        """
+        )
 
 
 @given(u'that I have an S3 backup bucket where I have write access')
 def step_impl(context):
     # we are using the same bucket so this can be empty for now
-    pass 
+    pass
+
 
 @given(u'that I have a file in S3 to backup')
 def step_impl(context):
-    context.test_key = ''.join(
+    context.test_data = ''.join(
         [random.choice(string.ascii_letters + string.digits) for n in range(16)]).encode('utf-8')
-    context.store_bucket.put_object(Key="origin/" + context.test_key)
+    context.store_bucket.put_object(Key="origin/" + context.test_key, Body="context.test_data")
 
 
-@given(u'that I have an ECS role which gives me all needed permissions')
+@when(u'I run my backup script giving it the base path in SSM')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: Given that I have an ECS role which gives me all needed permissions')
+    run(args=["backup.py", "--ssm-base", "test/system-backup/backup-test-" + context.test_key])
 
 
 @when(u'I run my backup container giving the base path')
@@ -120,7 +122,6 @@ def step_impl(context):
 @then(u'a backup should be created in the S3 destination bucket')
 def step_impl(context):
     raise NotImplementedError(u'STEP: Given that I have a file in S3 to backup')
-
 
 
 @then(u'that backup should contain my data')
