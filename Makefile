@@ -12,10 +12,9 @@ lint:
 
 testfix:
 	find . -name '*.py' | xargs black --line-length=100 --diff
-	# find . -name '*.py' | xargs autopep8 --aggressive --max-line-length=100 --diff
 
 fix:
-	find . -name '*.py' | xargs autopep8 --aggressive --max-line-length=100 --in-place
+	find . -name '*.py' | xargs black --line-length=100 
 
 .PHONY: build
 

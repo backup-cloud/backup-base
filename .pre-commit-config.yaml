@@ -1,0 +1,22 @@
+exclude: '^$'
+fail_fast: false
+repos:
+-   repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    - id: black
+      language_version: python3.6
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v1.2.3
+    hooks:
+    - id: flake8
+      exclude: '^features/steps' 
+      args:
+        - --ignore=W503,E402,E501
+        - --max-line-length=131
+    - id: flake8
+      files: 'features/steps/.*\.py'
+      args:
+        - --ignore=W503,E402,E501,F811
+        - --max-line-length=131
+        - --builtins=given,when,then
