@@ -1,0 +1,4 @@
+This directory contains BDD tests where some significant part of the
+system is mocked.  They are separated from the main acceptance tests
+so that mocked steps don't interfere with steps set up for the real
+environment.

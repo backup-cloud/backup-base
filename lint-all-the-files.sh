@@ -12,7 +12,7 @@ find . \( -type d \( -name venv -o -name .git \) -prune -false \) -o -type f | (
     while read -r file
     do
 	case "$file" in
-	    ./features/steps/*.py)
+	    ./features*/steps/*.py)
 		flake8 --ignore=W503,E402,E501,F811 "$file" --builtins=given,when,then &&
 		    ! grep --with-filename --line-number 'pdb.set_trace\|FIXME' "$file" ;;
 	    *.py)

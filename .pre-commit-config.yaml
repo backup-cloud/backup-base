@@ -10,12 +10,12 @@ repos:
     rev: v1.2.3
     hooks:
     - id: flake8
-      exclude: '^features/steps' 
+      exclude: '^features[-a-z0-9]*/steps' 
       args:
         - --ignore=W503,E402,E501
         - --max-line-length=131
     - id: flake8
-      files: 'features/steps/.*\.py'
+      files: '^features[-a-z0-9]*/steps/.*\.py'
       args:
         - --ignore=W503,E402,E501,F811
         - --max-line-length=131

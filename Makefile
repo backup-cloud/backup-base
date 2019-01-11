@@ -1,10 +1,12 @@
 test: build
+	behave --tags '~@future' features-mocked
 	behave --tags '~@future'
 
 wip: build
+	behave --wip features-mocked
 	behave --wip
 
-build: lint container-test containers
+build: lint 
 
 lint:
 	./lint-all-the-files.sh

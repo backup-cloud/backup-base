@@ -6,6 +6,7 @@ import random
 import string
 import boto3
 from dotenv import load_dotenv
+from hamcrest import assert_that, equal_to
 
 
 def eprint(*args, **kwargs):
@@ -69,6 +70,7 @@ def step_impl(context):
 
     c.create_key(userid, algorithm="rsa3072", expires_in=31536000, encrypt=True)
 
+    context.gpg_context = c
     context.public_key = c.key_export_minimal(pattern=userid)
     context.private_key = c.key_export_secret(pattern=userid)
 
@@ -91,6 +93,7 @@ def step_impl(context):
 
     bucket.put_object(Key=s3_key)
 
+    context.s3resource = s3
     context.test_key = test_key
     context.backup_bucket = bucket
     # use the same bucket for now for simplicity
@@ -120,7 +123,7 @@ def step_impl(context):
         [random.choice(string.ascii_letters + string.digits) for n in range(16)]
     ).encode("utf-8")
     context.store_bucket.put_object(
-        Key="origin/" + context.test_key, Body="context.test_data"
+        Key="origin/" + context.test_key, Body=context.test_data
     )
 
 
@@ -128,7 +131,7 @@ def step_impl(context):
 def step_impl(context):
     run(
         args=[
-            "backup.py",
+            "./backup.py",
             "--ssm-base",
             "test/system-backup/backup-test-" + context.test_key,
         ]
@@ -144,9 +147,21 @@ def step_impl(context):
 
 @then(u"a backup should be created in the S3 destination bucket")
 def step_impl(context):
-    raise NotImplementedError(u"STEP: Given that I have a file in S3 to backup")
+    client = boto3.client("s3")
+    o_name = "backup/s3/" + context.test_key
+    obj = context.store_bucket.Object(o_name)
+    try:
+        res = obj.get()
+    except client.exceptions.NoSuchKey as e:
+        eprint("couldn't access missing object: " + o_name)
+        raise (e)
+
+    content = res["Body"].read()
+    context.returned_data = content
 
 
 @then(u"that backup should contain my data")
 def step_impl(context):
-    raise NotImplementedError(u"STEP: Then that backup should contain my data")
+    c = context.gpg_context
+    plaintext, result, verify_result = c.decrypt(context.returned_data)
+    assert_that(plaintext, equal_to(context.test_data))
