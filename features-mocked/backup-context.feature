@@ -3,7 +3,6 @@ In order to allow us to encrypt backups from different sources we
 should have a common system which can manage the keys and set up for
 encryption of backups.
 
-  @wip
   Scenario: prepare for backup
   given that I have a backup context configured
   when I run a backup script from that context
