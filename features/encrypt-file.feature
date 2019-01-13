@@ -6,7 +6,6 @@ have a standard easy way to set up backup encryption
     given I have a private public key pair
       and the public key from that key pair is stored in an s3 bucket
 
-    @wip
     Scenario: check that we correctly encrypt a file
     given that I have a file in my directory
       and that I have a backup context configured
