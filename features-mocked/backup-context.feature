@@ -5,7 +5,7 @@ encryption of backups.
 
   Background: we have prepared to run encrypted backups
   given I have a private public key pair
-    and the public key from that key pair is stored in the bucket
+    and the public key from that key pair is stored in an s3 bucket
 
   Scenario: prepare for backup
   given that I have a backup context configured

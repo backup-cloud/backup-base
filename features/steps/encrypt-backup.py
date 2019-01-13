@@ -1,4 +1,4 @@
-import os
+from os import environ
 import sys
 from subprocess import run
 import gpg
@@ -7,14 +7,20 @@ import random
 import string
 import boto3
 from dotenv import load_dotenv
-from hamcrest import assert_that, equal_to, greater_than
+from hamcrest import assert_that, greater_than
+from backup_context import ensure_s3_paths_in_ssm
+from typeguard import typechecked  # type: ignore
+from typing import List
 
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def call_ansible_step(step_name, playbook="test-system.yml", extra_vars=None):
+@typechecked(always=True)
+def call_ansible_step(
+    step_name: str, playbook: str = "test-system.yml", extra_vars: List[str] = None
+):
     """call_ansible_step - run a step by running a matching ansible tag"""
 
     proc_res = run(
@@ -49,17 +55,29 @@ def call_ansible_step(step_name, playbook="test-system.yml", extra_vars=None):
         raise Exception("ansible failed")
 
 
-@given(u"that I have configured a base path in SSM")
+@typechecked(always=True)
 @given(u"I have an S3 bucket for backup testing")
-def step_impl(context):
+def step_impl(context) -> None:
     call_ansible_step(
         context.this_step.step_type + " " + context.this_step.name,
         playbook="test-enc-backup.yml",
     )
 
 
+@typechecked(always=True)
+@given(u"that I have configured my settings in SSM")
+def step_impl(context) -> None:
+    bname = context.s3_test_bucket = environ["S3_TEST_BUCKET"]
+    s3path = context.s3_test_path
+    context.s3_backup_target = context.s3_test_path + "/backup"
+    context.ssm_path = "/testing/backup_context/" + context.random_test_prefix
+
+    ensure_s3_paths_in_ssm(context.ssm_path, bname, s3path)
+
+
+@typechecked(always=True)
 @given(u"I have a private public key pair")
-def step_impl(context):
+def step_impl(context) -> None:
 
     c = gpg.Context(armor=True)
 
@@ -78,8 +96,9 @@ def step_impl(context):
     context.private_key = c.key_export_secret(pattern=userid)
 
 
-@given(u"the public key from that key pair is stored in the bucket")
-def step_impl(context):
+@typechecked(always=True)
+@given(u"the public key from that key pair is stored in an s3 bucket")
+def step_impl(context) -> None:
     # Envfile is created when the S3 bucket is set up with credentials
     # that have access to the bucket.
     env_path = "./aws_credentials.env"
@@ -102,7 +121,7 @@ def step_impl(context):
     context.s3_test_path = context.random_test_prefix
 
     s3 = boto3.resource("s3")
-    bucket_name = os.environ["S3_TEST_BUCKET"]
+    bucket_name = environ["S3_TEST_BUCKET"]
     bucket = s3.Bucket(bucket_name)
 
     # s3_key = "config/public-keys" + test_key + "example.com.pub"
@@ -118,8 +137,9 @@ def step_impl(context):
     context.store_bucket = bucket
 
 
+@typechecked(always=True)
 @given(u"that I have configured a public key and a reference to it")
-def step_impl(context):
+def step_impl(context) -> None:
     context.execute_steps(
         u"""
           given I have an S3 bucket for backup testing
@@ -129,14 +149,16 @@ def step_impl(context):
     )
 
 
+@typechecked(always=True)
 @given(u"that I have an S3 backup bucket where I have write access")
-def step_impl(context):
+def step_impl(context) -> None:
     # we are using the same bucket so this can be empty for now
     pass
 
 
+@typechecked(always=True)
 @given(u"that I have a file in S3 to backup")
-def step_impl(context):
+def step_impl(context) -> None:
     context.test_data = "".join(
         [random.choice(string.ascii_letters + string.digits) for n in range(16)]
     ).encode("utf-8")
@@ -145,8 +167,9 @@ def step_impl(context):
     )
 
 
+@typechecked(always=True)
 @when(u"I run my backup script giving it the base path in SSM")
-def step_impl(context):
+def step_impl(context) -> None:
     run(
         args=[
             "./backup.py",
@@ -156,15 +179,17 @@ def step_impl(context):
     )
 
 
+@typechecked(always=True)
 @when(u"I run my backup container giving the base path")
-def step_impl(context):
+def step_impl(context) -> None:
     raise NotImplementedError(
         u"STEP: When I run my backup container giving the base path"
     )
 
 
+@typechecked(always=True)
 @then(u"a backup should be created in the S3 destination bucket")
-def step_impl(context):
+def step_impl(context) -> None:
     client = boto3.client("s3")
     o_name = "backup/s3/" + context.test_key
     obj = context.store_bucket.Object(o_name)
@@ -174,12 +199,4 @@ def step_impl(context):
         eprint("couldn't access missing object: " + o_name)
         raise (e)
 
-    content = res["Body"].read()
-    context.returned_data = content
-
-
-@then(u"that backup should contain my data")
-def step_impl(context):
-    c = context.gpg_context
-    plaintext, result, verify_result = c.decrypt(context.returned_data)
-    assert_that(plaintext, equal_to(context.test_data))
+    context.encrypted_file_contents = res["Body"].read()

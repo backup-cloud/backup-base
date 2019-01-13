@@ -7,16 +7,18 @@ upload and encrypted backup of our data to an S3 bucket.
 
     Background: we have prepared to run encrypted backups
     given I have a private public key pair
-     and that I have an S3 backup bucket where I have write access
+      and the public key from that key pair is stored in an s3 bucket
 
+    @future
+    @wip
     Scenario: store encrypted backup in S3
-    given that I have configured a base path in SSM
-     and that I have configured a public key and a reference to it
+    given that I have configured my settings in SSM
      and that I have a file in S3 to backup
     when I run my backup script giving it the base path in SSM
     then a backup should be created in the S3 destination bucket
-     and that backup should contain my data
+     and if I decrypt that file the content with the private key it should match the original
 
+    @future
     Scenario: store encrypted backup in S3 using a container
     given that I have configured a base path in SSM
      and that I have configured a public key and a reference to it
@@ -26,6 +28,7 @@ upload and encrypted backup of our data to an S3 bucket.
     then a backup should be created in the S3 destination bucket
      and that backup should contain my data
 
+    @future
     Scenario: store encrypted backup in S3 using an EC2 instance
     given that I have configured a base path in SSM
      and that I have configured a public key and a reference to it

@@ -4,7 +4,7 @@ have a standard easy way to set up backup encryption
 
     Background: we have prepared to run encrypted backups
     given I have a private public key pair
-      and the public key from that key pair is stored in the bucket
+      and the public key from that key pair is stored in an s3 bucket
 
     @wip
     Scenario: check that we correctly encrypt a file
@@ -12,4 +12,4 @@ have a standard easy way to set up backup encryption
       and that I have a backup context configured
      when I run a script that calls my encryption command on that file
      then an encrypted file should be created
-      and if I decrypt that file the content should match the original
+      and if I decrypt that file the content with the original GPG setup

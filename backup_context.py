@@ -13,6 +13,18 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
+def set_string_par(ssm, path: str, value: str) -> None:
+    ssm_paramdef = dict(Name=path, Value=value, Type="String", Overwrite=True)
+    eprint("putting: " + value + "into ssm param: " + path)
+    ssm.put_parameter(**ssm_paramdef)
+
+
+def ensure_s3_paths_in_ssm(ssm_path: str, s3_bucket: str, s3_path: str) -> None:
+    ssm = boto3.client("ssm")
+    set_string_par(ssm, ssm_path + "/s3_bucket", s3_bucket)
+    set_string_par(ssm, ssm_path + "/s3_path", s3_path)
+
+
 class BackupContext:
     # TODO - recipients should either come from S3 keys or from SSM
     def __init__(self, ssm_path: str, recipients: List[str], bindir: str = None):
@@ -81,6 +93,7 @@ class BackupContext:
         script = """\
 #!/bin/sh
 set -evx
+rm -f $1.gpg
 gpg --batch --homedir "{HOMEDIR}" --recipient "{KEYID}" --encrypt --trust-model always $1
 """.format(
             HOMEDIR=self.gpgdir.name, KEYID=self.recipients[0]
