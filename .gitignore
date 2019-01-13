@@ -7,7 +7,7 @@ aws_credentials*
 *environment
 *postfix
 .#*
-
+*.dat
 *.pub
 gpgtemp
 keys/
@@ -17,3 +17,8 @@ dump.sql*
 *.pri
 mockstmp
 .anslk_*
+.prepare*
+test-config*
+__pycache__
+.mypy_cache
+*.gpg

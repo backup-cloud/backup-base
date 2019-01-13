@@ -1,6 +1,4 @@
 from backup_context import BackupContext
-import random
-import string
 import os
 import boto3
 import sys
@@ -22,24 +20,16 @@ def ensure_s3_paths_in_ssm(s3_bucket: str, s3_path: str, ssm_path=None) -> None:
     set_string_par(ssm, ssm_path + "/s3_path", s3_path)
 
 
-def ensure_encrypt_keys_in_s3() -> None:
-    pass
-
-
 @given(u"that I have a backup context configured")
 def step_impl(context) -> None:
-    context.random_test_prefix = "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(10)]
-    )
     bname = context.s3_test_bucket = os.environ["S3_TEST_BUCKET"]
-    s3path = context.s3_test_path = context.random_test_prefix
+    s3path = context.s3_test_path
     context.s3_backup_target = context.s3_test_path + "/backup"
     context.ssm_path = "/testing/backup_context/" + context.random_test_prefix
 
     ensure_s3_paths_in_ssm(bname, s3path, ssm_path=context.ssm_path)
-    ensure_encrypt_keys_in_s3()
 
-    bc = BackupContext(ssm_path=context.ssm_path)
+    bc = BackupContext(ssm_path=context.ssm_path, recipients=context.gpg_userlist)
     context.backup_context = bc
 
 

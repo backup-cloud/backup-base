@@ -1,10 +1,12 @@
+from __future__ import annotations
 import subprocess
-import boto3
+import boto3  # type: ignore
+import os
 import sys
-import gpg
+import gpg  # type: ignore
 from tempfile import TemporaryDirectory
-from botocore.exceptions import ClientError
-from typing import Dict
+from botocore.exceptions import ClientError  # type: ignore
+from typing import Dict, List
 
 
 def eprint(*args, **kwargs):
@@ -12,11 +14,16 @@ def eprint(*args, **kwargs):
 
 
 class BackupContext:
-    def __init__(self, ssm_path: str = None):
-        if ssm_path is None:
-            raise Exception("BackupContext needs ssm_path")
+    # TODO - recipients should either come from S3 keys or from SSM
+    def __init__(self, ssm_path: str, recipients: List[str], bindir: str = None):
+        if bindir is None:
+            bindir = os.getcwd() + "/bin"
+        if not os.path.exists(bindir):
+            os.makedirs(bindir)
+        self.bindir = bindir
         self.ssm_path = ssm_path
         self.ssm = boto3.client("ssm")
+        self.recipients = recipients
 
     def s3_path(self) -> str:
         ssm_path: str = self.ssm_path
@@ -46,8 +53,22 @@ class BackupContext:
 
     def get_gpg_keys(self, gpg_context):
         bucket = self.s3_bucket()
-        obj = bucket.Object(self.s3_path() + "/config/public-keys/test-key.pub")
-        gpg_key = obj.get()["Body"].read()
+        key_path = self.s3_path() + "/config/public-keys/test-key.pub"
+        obj = bucket.Object(key_path)
+        try:
+            gpg_key = obj.get()["Body"].read()
+        except ClientError as e:
+            eprint("Failed to get public key: " + key_path)
+            raise e
+
+        assert len(gpg_key) > 64, (
+            "public key: "
+            + key_path
+            + " is corrupt - too short at "
+            + str(len(gpg_key))
+            + " characters"
+        )
+
         gpg_context.key_import(gpg_key)
 
     def setup_encrypt_command(self):
@@ -59,19 +80,24 @@ class BackupContext:
 
         script = """\
 #!/bin/sh
-gpg --homedir "{}" --recipient "${KEYID}" --encrypt --trust-model always > "$THE_DUMP_FILE"
+set -evx
+gpg --batch --homedir "{HOMEDIR}" --recipient "{KEYID}" --encrypt --trust-model always $1
 """.format(
-            self.gpgdir.name
+            HOMEDIR=self.gpgdir.name, KEYID=self.recipients[0]
         )
-        with open("/usr/bin/backup_encrypt", "w") as script_file:
-            script_file.write(script)
 
-    def run(self, command=None):
+        prog_path = self.bindir + "/backup_encrypt"
+        with open(prog_path, "w") as script_file:
+            script_file.write(script)
+        subprocess.call(["chmod", "a+x", prog_path])
+
+    def run(self, command: List[str]):
         self.setup_encrypt_command()
         s3_target = self.s3_target_url()
         enc_env: Dict[str, str] = {
             "BACKUP_CONTEXT_S3_TARGET": s3_target,
             "BACKUP_CONTEXT_ENCRYPT_COMMAND": "backup_encrypt",
+            "PATH": self.bindir + ":" + os.environ["PATH"],
         }
         cp = subprocess.run(command, env=enc_env)
         cp.check_returncode()

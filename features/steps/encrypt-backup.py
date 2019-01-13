@@ -1,3 +1,4 @@
+import os
 import sys
 from subprocess import run
 import gpg
@@ -6,7 +7,7 @@ import random
 import string
 import boto3
 from dotenv import load_dotenv
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, equal_to, greater_than
 
 
 def eprint(*args, **kwargs):
@@ -64,9 +65,11 @@ def step_impl(context):
 
     context.gpgdir = TemporaryDirectory()
     c.home_dir = context.gpgdir.name
-    userid = "backup-" + "".join(
+    userid = context.gpg_userid = "backup-" + "".join(
         [random.choice(string.ascii_letters + string.digits) for n in range(10)]
     )
+
+    context.gpg_userlist = [userid]
 
     c.create_key(userid, algorithm="rsa3072", expires_in=31536000, encrypt=True)
 
@@ -75,23 +78,38 @@ def step_impl(context):
     context.private_key = c.key_export_secret(pattern=userid)
 
 
-@given(u"that private public key pair is stored in the bucket")
+@given(u"the public key from that key pair is stored in the bucket")
 def step_impl(context):
     # Envfile is created when the S3 bucket is set up with credentials
     # that have access to the bucket.
     env_path = "./aws_credentials.env"
     load_dotenv(dotenv_path=env_path)
 
+    # test_key is used for long lived resources like s3 buckets that
+    # cannot be created for each test run.
+
     with open(".anslk_random_testkey") as f:
         test_key = f.read().rstrip()
 
+    # by contrast random_test_prefix is used for resource local to
+    # this test like an S3 path that can be created and destroyed
+    # quickly - this will allow parallel testing and independence
+
+    context.random_test_prefix = "".join(
+        [random.choice(string.ascii_letters + string.digits) for n in range(10)]
+    )
+
+    context.s3_test_path = context.random_test_prefix
+
     s3 = boto3.resource("s3")
-    bucket_name = "test-backup-" + test_key
+    bucket_name = os.environ["S3_TEST_BUCKET"]
     bucket = s3.Bucket(bucket_name)
 
-    s3_key = "config/" + test_key + "example.com.pub"
+    # s3_key = "config/public-keys" + test_key + "example.com.pub"
+    s3_key = context.s3_test_path + "/config/public-keys/test-key.pub"
 
-    bucket.put_object(Key=s3_key)
+    assert_that(len(context.public_key), greater_than(64), "characters")
+    bucket.put_object(Key=s3_key, Body=context.public_key)
 
     context.s3resource = s3
     context.test_key = test_key

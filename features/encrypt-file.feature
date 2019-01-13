@@ -4,6 +4,7 @@ have a standard easy way to set up backup encryption
 
     Background: we have prepared to run encrypted backups
     given I have a private public key pair
+      and the public key from that key pair is stored in the bucket
 
     @wip
     Scenario: check that we correctly encrypt a file

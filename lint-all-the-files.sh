@@ -13,10 +13,12 @@ find . \( -type d \( -name venv -o -name .git \) -prune -false \) -o -type f | (
     do
 	case "$file" in
 	    ./features*/steps/*.py)
-		flake8 --ignore=W503,E402,E501,F811 "$file" --builtins=given,when,then &&
+		flake8 --ignore=W503,E402,E501,F811,T484 "$file" --builtins=given,when,then &&
 		    ! grep --with-filename --line-number 'pdb.set_trace\|FIXME' "$file" ;;
 	    *.py)
-		flake8 --ignore=W503,E402,E501 "$file" &&
+		# probably an effective bug - T484 is needed because otherwise it fails
+		# claiming "Module '__future__' has no attribute 'annotations'"
+		flake8 --ignore=W503,E402,E501,T484 "$file" &&
 		    ! grep --with-filename --line-number 'pdb.set_trace\|FIXME' "$file" ;;
 	    *.yaml | *.yml )
 		yamllint --format parsable "$file" -d "line-length: {max: 70}";;

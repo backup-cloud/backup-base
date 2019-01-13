@@ -33,6 +33,7 @@
                - arn:aws:iam::aws:policy/AWSLambdaFullAccess
                - arn:aws:iam::aws:policy/IAMFullAccess
                - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+               - arn:aws:iam::aws:policy/AmazonSSMFullAccess
              state: present
              <<: *admin_aws_connection_info
 
