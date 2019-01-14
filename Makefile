@@ -1,6 +1,7 @@
 test: build
 	behave --tags '~@future' features-mocked
 	behave --tags '~@future'
+	python -m doctest -v README.md
 
 prepare: .prepare_complete
 
@@ -17,7 +18,6 @@ build: lint
 
 lint:
 	./lint-all-the-files.sh
-
 
 testfix:
 	find . -name '*.py' | xargs black --line-length=100 --diff

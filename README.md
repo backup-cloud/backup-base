@@ -3,6 +3,23 @@ simple service of backing up from S3 locations into encrypted files in
 other S3 locations.
 
 
+backup_context.BackupContext
+============================
+
+The main class provided in this repo is a context class which reads
+configuration from S3 and handles backup encryption for you.
+
+
+    >>> from backup_context import BackupContext
+    >>> bc = BackupContext(ssm_path = "/bc-demo", recipients = ["test@example.com"] )
+    >>> cp = bc.run("myscript.sh")
+    >>> print(cp.stdout.decode('UTF-8').strip())
+    *********************
+    backing up everything
+    *********************
+
+
+
 Ansible based deployment
 ========================
 

@@ -144,5 +144,6 @@ gpg --batch --homedir "{HOMEDIR}" --recipient "{KEYID}" --encrypt --trust-model 
             "BACKUP_CONTEXT_ENCRYPT_COMMAND": "backup_encrypt",
             "PATH": self.bindir + ":" + os.environ["PATH"],
         }
-        cp = subprocess.run(command, env=enc_env)
+        cp = subprocess.run(command, env=enc_env, capture_output=True)
         cp.check_returncode()
+        return cp

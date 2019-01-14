@@ -18,7 +18,7 @@ def step_impl_run(context: Context) -> None:
     bc: BackupContext = context.backup_context
     with patch("subprocess.run") as mockrun:
         context.result = bc.run(["fakeprog"])
-        mockrun.assert_called_once_with(["fakeprog"], env=ANY)
+        mockrun.assert_called_once_with(["fakeprog"], capture_output=True, env=ANY)
         context.script_env = mockrun.call_args[1]["env"]
 
 
