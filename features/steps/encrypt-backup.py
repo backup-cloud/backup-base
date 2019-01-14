@@ -43,11 +43,11 @@ def step_impl(context) -> None:
     env_path = "./aws_credentials.env"
     load_dotenv(dotenv_path=env_path)
 
-    # test_key is used for long lived resources like s3 buckets that
+    # testdir_random_id is used for long lived resources like s3 buckets that
     # cannot be created for each test run.
 
     with open(".anslk_random_testkey") as f:
-        test_key = f.read().rstrip()
+        testdir_random_id = f.read().rstrip()
 
     # by contrast random_test_prefix is used for resource local to
     # this test like an S3 path that can be created and destroyed
@@ -63,14 +63,14 @@ def step_impl(context) -> None:
     bucket_name = environ["S3_TEST_BUCKET"]
     bucket = s3.Bucket(bucket_name)
 
-    # s3_key = "config/public-keys" + test_key + "example.com.pub"
+    # s3_key = "config/public-keys" + testdir_random_id + "example.com.pub"
     s3_key = context.s3_test_path + "/config/public-keys/test-key.pub"
 
     assert_that(len(context.public_key), greater_than(64), "characters")
     bucket.put_object(Key=s3_key, Body=context.public_key)
 
     context.s3resource = s3
-    context.test_key = test_key
+    context.testdir_random_id = testdir_random_id
     context.backup_bucket = bucket
     # use the same bucket for now for simplicity
     context.store_bucket = bucket

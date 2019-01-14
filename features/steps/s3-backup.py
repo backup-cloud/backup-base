@@ -1,6 +1,7 @@
 from typeguard import typechecked  # type: ignore
 from os import environ
 from backup_context import ensure_s3_paths_in_ssm
+from s3_backup import backup_s3_to_s3
 import boto3
 import random
 import string
@@ -46,28 +47,33 @@ def step_impl(context) -> None:
     context.test_data = "".join(
         [random.choice(string.ascii_letters + string.digits) for n in range(16)]
     ).encode("utf-8")
-    context.store_bucket.put_object(
-        Key="origin/" + context.test_key, Body=context.test_data
-    )
+    context.s3_src_file_path = s3_src_file = "origin/" + context.testdir_random_id
+    context.store_bucket.put_object(Key=s3_src_file, Body=context.test_data)
+
+
+@typechecked(always=True)
+@when(u"I request a backup of that file using the context")
+def step_impl(context):
+    backup_context = context.backup_context
+    src_bucket = context.store_bucket.name
+    src_path = context.s3_src_file_path
+    dest_bucket = context.backup_bucket.name
+    dest_path = context.s3_test_path + "/backup-test/individual-file-backup.gpg"
+    backup_s3_to_s3(backup_context, src_bucket, src_path, dest_bucket, dest_path)
+    context.s3_dest_path = dest_path
 
 
 @typechecked(always=True)
 @when(u"I run my backup script giving it the base path in SSM")
 def step_impl(context) -> None:
-    run(
-        args=[
-            "./backup.py",
-            "--ssm-base",
-            "test/system-backup/backup-test-" + context.test_key,
-        ]
-    )
+    run(args=["./backup.py", "--ssm-base", context.ssm_path])
 
 
 @typechecked(always=True)
-@then(u"a backup should be created in the S3 destination bucket")
+@then(u"a backup object should be created in the S3 destination bucket")
 def step_impl(context) -> None:
     client = boto3.client("s3")
-    o_name = "backup/s3/" + context.test_key
+    o_name = context.s3_dest_path
     obj = context.store_bucket.Object(o_name)
     try:
         res = obj.get()

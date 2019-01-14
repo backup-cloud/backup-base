@@ -27,6 +27,9 @@ def ensure_s3_paths_in_ssm(ssm_path: str, s3_bucket: str, s3_path: str) -> None:
 
 class BackupContext:
     # TODO - recipients should either come from S3 keys or from SSM
+    """provide a context which will allow us to easily run backups and encrypt them
+    """
+
     def __init__(self, ssm_path: str, recipients: List[str], bindir: str = None):
         if bindir is None:
             bindir = os.getcwd() + "/bin"
@@ -83,7 +86,20 @@ class BackupContext:
 
         gpg_context.key_import(gpg_key)
 
+    def encrypt_stream(self, stream):
+        """TODO: encrypt_stream - encrypt a stream into another stream
+
+        given a stream of plaintext data return a stream of encrypted data
+        """
+        pass
+
     def setup_encrypt_command(self):
+        """prepare a command that can be used in scripts for encrypting data
+
+        this will be done for you automatically if you use the
+        backup_context.run() - we create a command backup_encrypt
+        which will run the encryption for you.
+        """
         c = gpg.Context(armor=True)
         self.gpgdir = TemporaryDirectory()
         c.home_dir = self.gpgdir.name
@@ -105,6 +121,22 @@ gpg --batch --homedir "{HOMEDIR}" --recipient "{KEYID}" --encrypt --trust-model 
         subprocess.call(["chmod", "a+x", prog_path])
 
     def run(self, command: List[str]):
+        """run a command with the appropriate encryption commands ready to use
+
+
+        this sets things up (see backup_context.run() ) and then runs
+        your script with appropriate environmment variables set.  You can call
+
+            $BACKUP_CONTEXT_ENCRYPT_COMMAND myfile
+
+        from your shellscript and it will output the encrypted file as
+        myfile.gpg Please do use the environment variable since we may
+        in future add specific options and so using the command
+        directly might stop working.
+
+        command compatibility will be maintained for (at least) ash and bash.
+        """
+
         self.setup_encrypt_command()
         s3_target = self.s3_target_url()
         enc_env: Dict[str, str] = {
