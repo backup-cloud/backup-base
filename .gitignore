@@ -22,3 +22,4 @@ test-config*
 __pycache__
 .mypy_cache
 *.gpg
+bin/backup_encrypt

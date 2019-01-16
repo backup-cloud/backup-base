@@ -40,6 +40,12 @@ class BackupContext:
         self.ssm = boto3.client("ssm")
         self.recipients = recipients
 
+        c = gpg.Context(armor=True)
+        self.gpgdir = TemporaryDirectory()
+        c.home_dir = self.gpgdir.name
+        self.get_gpg_keys(c)
+        self.gpg_context = c
+
     def s3_path(self) -> str:
         ssm_path: str = self.ssm_path
         ssm_paramdef = dict(Name=ssm_path + "/s3_path")
@@ -67,6 +73,12 @@ class BackupContext:
         return self.s3_path() + "/backup"
 
     def get_gpg_keys(self, gpg_context):
+        """recover gpg keys from config/public-keys folder in S3
+
+        we pick up all the keys from the folder and then import them
+        to the gpg context which makes them available for encrypting.
+        """
+
         bucket = self.s3_bucket()
         key_path = self.s3_path() + "/config/public-keys/test-key.pub"
         obj = bucket.Object(key_path)
@@ -86,12 +98,22 @@ class BackupContext:
 
         gpg_context.key_import(gpg_key)
 
-    def encrypt_stream(self, stream):
+    def encrypt(self, plaintext, *args, **kwargs):
         """TODO: encrypt_stream - encrypt a stream into another stream
 
-        given a stream of plaintext data return a stream of encrypted data
+        Given a stream of plaintext data return a stream of encrypted
+        data.  This looks very much like gpg.Context.encrypt except it
+        provides defaults for recipients, sets always_trust True so
+        our imported keys work and sign False since we don't have a
+        key to sign from (yet?).
         """
-        pass
+
+        c = self.gpg_context
+        recipient_keys = [c.get_key(k) for k in self.recipients]
+        options = dict(recipients=recipient_keys, sign=False, always_trust=True)
+        options.update(kwargs)
+
+        c.encrypt(plaintext, *args, **options)
 
     def setup_encrypt_command(self):
         """prepare a command that can be used in scripts for encrypting data
@@ -100,11 +122,6 @@ class BackupContext:
         backup_context.run() - we create a command backup_encrypt
         which will run the encryption for you.
         """
-        c = gpg.Context(armor=True)
-        self.gpgdir = TemporaryDirectory()
-        c.home_dir = self.gpgdir.name
-        self.get_gpg_keys(c)
-        self.gpg_context = c
 
         script = """\
 #!/bin/sh
