@@ -8,6 +8,7 @@ import boto3
 from dotenv import load_dotenv
 from hamcrest import assert_that, greater_than
 from typeguard import typechecked  # type: ignore
+from botocore.exceptions import ClientError
 
 
 def eprint(*args, **kwargs):
@@ -61,13 +62,20 @@ def step_impl(context) -> None:
 
     s3 = boto3.resource("s3")
     bucket_name = environ["S3_TEST_BUCKET"]
+    assert len(bucket_name) > len("test-backup-") + 2, (
+        "bucket name: " + bucket_name + " missing random key"
+    )
     bucket = s3.Bucket(bucket_name)
 
     # s3_key = "config/public-keys" + testdir_random_id + "example.com.pub"
     s3_key = context.s3_test_path + "/config/public-keys/test-key.pub"
 
     assert_that(len(context.public_key), greater_than(64), "characters")
-    bucket.put_object(Key=s3_key, Body=context.public_key)
+    try:
+        bucket.put_object(Key=s3_key, Body=context.public_key)
+    except ClientError as e:
+        eprint("failed to put public key into s3 bucket: " + bucket_name)
+        raise e
 
     context.s3resource = s3
     context.testdir_random_id = testdir_random_id

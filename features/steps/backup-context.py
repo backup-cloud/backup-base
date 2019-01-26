@@ -1,4 +1,5 @@
-from backup_context import BackupContext, ensure_s3_paths_in_ssm
+from backup_cloud import BackupContext
+from backup_cloud.base import ensure_s3_paths_in_ssm
 import os
 import sys
 

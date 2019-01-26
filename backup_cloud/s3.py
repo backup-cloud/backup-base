@@ -1,4 +1,4 @@
-from backup_context import BackupContext
+from backup_cloud.base import BackupContext
 import boto3
 from botocore.exceptions import ClientError  # type: ignore
 import sys
@@ -15,18 +15,31 @@ def _download_worker(backup_context, bucket: str, path: str, dest_stream):
     s3 = boto3.resource("s3")
     obj = s3.Object(bucket, path)
     src_stream = obj.get()["Body"]
+    _streampush_worker(src_stream, dest_stream)
+
+
+def _streampush_worker(src_stream, dest_stream):
+    """push from one streamlike object to another
+
+    This is designed to run in a separate thread and push from one
+    streamlike object (only need to have a read() function) to
+    another.
+
+    This allows us to convert a streaming object from S3 into a pipe.
+    """
+
     read_so_far: int = 0
-    while True:
-        chunk = src_stream.read(4096)
-        if not chunk:
-            break
+    chunk: bytes
+    for chunk in iter(lambda: src_stream.read(4096), b""):
         read_so_far += len(chunk)
         eprint("read " + str(read_so_far) + " bytes so far\n")
         dest_stream.write(chunk)
+    dest_stream.flush()
 
 
 def _encrypt_worker(backup_context, source_stream, encrypted_stream):
     backup_context.encrypt(source_stream, sink=encrypted_stream)
+    encrypted_stream.flush()
 
 
 def _encrypt_worker_debug(backup_context, source_stream, encrypted_stream):
@@ -34,6 +47,7 @@ def _encrypt_worker_debug(backup_context, source_stream, encrypted_stream):
     eprint("read plaintext: " + str(len(plaintext)) + " bytes\n")
     ciphertext, result, sign_result = backup_context.encrypt(plaintext)
     encrypted_stream.write(ciphertext)
+    encrypted_stream.flush()
 
 
 def backup_s3_to_s3(

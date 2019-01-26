@@ -1,6 +1,6 @@
 from unittest.mock import patch, ANY
 from hamcrest import assert_that, equal_to
-from backup_context import BackupContext
+from backup_cloud import BackupContext
 
 # MIKED: oh the irony of the following line
 from typeguard import typechecked  # type: ignore
