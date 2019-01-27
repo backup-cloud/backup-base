@@ -10,8 +10,6 @@ upload and encrypted backup of our data to an S3 bucket.
       and I have a private public key pair
       and the public key from that key pair is stored in an s3 bucket
 
-    @future
-    @wip
     Scenario: store encrypted backup in S3
     given that I have configured my settings in SSM
      and that I have a file in S3 to backup

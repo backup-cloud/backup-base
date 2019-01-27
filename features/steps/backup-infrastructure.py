@@ -1,13 +1,13 @@
 from dotenv import load_dotenv
 import boto3
-from os import environ
+from hamcrest import assert_that, greater_than
 
 
 @given(u"I have access to an account for doing backups")
 def step_impl(context):
     # Envfile is created when the S3 bucket is set up with credentials
     # that have access to the bucket.
-    env_path = "./aws_credentials.env"
+    env_path: str = "./aws_credentials.env"
     load_dotenv(dotenv_path=env_path)
 
     # testdir_random_id is used for long lived resources like s3 buckets that
@@ -17,9 +17,11 @@ def step_impl(context):
         testdir_random_id = f.read().rstrip()
 
     s3 = boto3.resource("s3")
-    context.bucket_name = environ["S3_TEST_BUCKET"]
-    assert len(context.bucket_name) > len("test-backup-") + 2, (
-        "bucket name: " + context.bucket_name + " missing random key"
+    context.bucket_name = "test-backup-" + testdir_random_id
+    assert_that(
+        len(context.bucket_name),
+        greater_than(len("test-backup-") + 2),
+        "bucket name: " + context.bucket_name + " missing random key",
     )
     bucket = s3.Bucket(context.bucket_name)
 

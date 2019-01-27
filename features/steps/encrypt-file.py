@@ -37,8 +37,16 @@ def step_impl(context):
     gpgdir = TemporaryDirectory()
     c.home_dir = gpgdir.name
 
-    assert_that(len(context.private_key), greater_than(64), "characters")
-    assert_that(len(context.encrypted_file_contents), greater_than(64), "characters")
+    assert_that(
+        len(context.private_key),
+        greater_than(64),
+        "private key is too short to be real",
+    )
+    assert_that(
+        len(context.encrypted_file_contents),
+        greater_than(64),
+        "encrypted file is too short to be real ",
+    )
     c.key_import(context.private_key)
     plaintext, result, verify_result = c.decrypt(context.encrypted_file_contents)
     assert_that(plaintext, equal_to(context.test_data))

@@ -34,12 +34,22 @@ def _streampush_worker(src_stream, dest_stream):
         read_so_far += len(chunk)
         eprint("read " + str(read_so_far) + " bytes so far\n")
         dest_stream.write(chunk)
-    dest_stream.flush()
+    try:
+        dest_stream.flush()
+    except BrokenPipeError as e:
+        eprint("BrokenPipeError at end of plaintext stream; probably okay; ignoring")
+        raise e
+    dest_stream.close()
 
 
 def _encrypt_worker(backup_context, source_stream, encrypted_stream):
     backup_context.encrypt(source_stream, sink=encrypted_stream)
-    encrypted_stream.flush()
+    try:
+        encrypted_stream.flush()
+    except BrokenPipeError as e:
+        eprint("BrokenPipeError at end of encrypted stream;")
+        raise e
+    encrypted_stream.close()
 
 
 def _encrypt_worker_debug(backup_context, source_stream, encrypted_stream):
@@ -47,7 +57,12 @@ def _encrypt_worker_debug(backup_context, source_stream, encrypted_stream):
     eprint("read plaintext: " + str(len(plaintext)) + " bytes\n")
     ciphertext, result, sign_result = backup_context.encrypt(plaintext)
     encrypted_stream.write(ciphertext)
-    encrypted_stream.flush()
+    try:
+        encrypted_stream.flush()
+    except BrokenPipeError as e:
+        eprint("BrokenPipeError at end of encrypted stream;")
+        raise e
+    encrypted_stream.close()
 
 
 def backup_s3_to_s3(
@@ -87,8 +102,11 @@ def backup_s3_to_s3(
     s3 = boto3.resource("s3")
     dest_obj = s3.Object(dest_bucket, dest_path)
 
+    def callback(x):
+        eprint("uploaded " + str(x) + " bytes")
+
     try:
-        dest_obj.put({"Body": r_encrypt_file})
+        dest_obj.upload_fileobj(r_encrypt_file, Callback=callback)
     except ClientError as e:
         eprint(
             "Failed to store: ",

@@ -113,7 +113,7 @@ class BackupContext:
         options = dict(recipients=recipient_keys, sign=False, always_trust=True)
         options.update(kwargs)
 
-        c.encrypt(plaintext, *args, **options)
+        return c.encrypt(plaintext, *args, **options)
 
     def setup_encrypt_command(self):
         """prepare a command that can be used in scripts for encrypting data

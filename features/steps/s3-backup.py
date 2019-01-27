@@ -7,6 +7,7 @@ import random
 import string
 from subprocess import run
 from behave_ansible import call_ansible_step
+from hamcrest import assert_that, greater_than
 import sys
 
 
@@ -82,3 +83,8 @@ def step_impl(context) -> None:
         raise (e)
 
     context.encrypted_file_contents = res["Body"].read()
+    assert_that(
+        len(context.encrypted_file_contents),
+        greater_than(15),
+        "backup contents from s3 too short to be real",
+    )
