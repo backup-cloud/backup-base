@@ -63,7 +63,7 @@ class BackupContext:
             s3_bucket_name = self.ssm.get_parameter(**ssm_paramdef)["Parameter"][
                 "Value"
             ]
-        except ClientError as e:
+        except (ClientError) as e:
             eprint("Failed to get parameter: " + ssm_paramdef["Name"])
             raise e
         s3 = boto3.resource("s3")

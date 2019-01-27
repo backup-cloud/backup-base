@@ -4,14 +4,15 @@ should have a common system which can manage the keys and set up for
 encryption of backups.
 
   Background: we have prepared to run encrypted backups
-  given I have a private public key pair
-    and the public key from that key pair is stored in an s3 bucket
+    given I have access to an account for doing backups
+      and I have a private public key pair
+      and the public key from that key pair is stored in an s3 bucket
 
   Scenario: prepare for backup
-  given that I have a backup context configured
-  when I run a backup script from that context
-  then my S3 URL should be configured
-  and my encryption command should be configured
+    given that I have a backup context configured
+     when I run a backup script from that context
+     then my S3 URL should be configured
+      and my encryption command should be configured
 
   @future
   Scenario: verify 

@@ -44,11 +44,20 @@
     - tags:
         - given I have an S3 bucket for backup testing
       block:
+
+         # the following is the first AWS task which is run with the new
+         # keys we got so this can easily fail if the keys haven't been
+         # distributed correctly in IAM.  For this reason we include a
+         # retry which should give AWS time to complete distribution.
           - name: create the s3 bucket
             s3_bucket:
               name: "test-backup-{{test_key}}"
               state: present
               <<: *aws_connection_info
+            retries: 3  
+            delay: 5
+            register: result
+            until: result.name is defined and result.name == "test-backup-" + test_key
 
           # what follows sets up the credentials to access the S3
           # bucket.  For now it's logical to put it as part of s3

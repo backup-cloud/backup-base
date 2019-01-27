@@ -1,11 +1,8 @@
-from os import environ
 import sys
 import gpg
 from tempfile import TemporaryDirectory
 import random
 import string
-import boto3
-from dotenv import load_dotenv
 from hamcrest import assert_that, greater_than
 from typeguard import typechecked  # type: ignore
 from botocore.exceptions import ClientError
@@ -39,16 +36,6 @@ def step_impl(context) -> None:
 @typechecked(always=True)
 @given(u"the public key from that key pair is stored in an s3 bucket")
 def step_impl(context) -> None:
-    # Envfile is created when the S3 bucket is set up with credentials
-    # that have access to the bucket.
-    env_path = "./aws_credentials.env"
-    load_dotenv(dotenv_path=env_path)
-
-    # testdir_random_id is used for long lived resources like s3 buckets that
-    # cannot be created for each test run.
-
-    with open(".anslk_random_testkey") as f:
-        testdir_random_id = f.read().rstrip()
 
     # by contrast random_test_prefix is used for resource local to
     # this test like an S3 path that can be created and destroyed
@@ -60,28 +47,15 @@ def step_impl(context) -> None:
 
     context.s3_test_path = context.random_test_prefix
 
-    s3 = boto3.resource("s3")
-    bucket_name = environ["S3_TEST_BUCKET"]
-    assert len(bucket_name) > len("test-backup-") + 2, (
-        "bucket name: " + bucket_name + " missing random key"
-    )
-    bucket = s3.Bucket(bucket_name)
-
     # s3_key = "config/public-keys" + testdir_random_id + "example.com.pub"
-    s3_key = context.s3_test_path + "/config/public-keys/test-key.pub"
+    context.s3_key = context.s3_test_path + "/config/public-keys/test-key.pub"
 
     assert_that(len(context.public_key), greater_than(64), "characters")
     try:
-        bucket.put_object(Key=s3_key, Body=context.public_key)
+        context.backup_bucket.put_object(Key=context.s3_key, Body=context.public_key)
     except ClientError as e:
-        eprint("failed to put public key into s3 bucket: " + bucket_name)
+        eprint("failed to put public key into s3 bucket: " + context.bucket_name)
         raise e
-
-    context.s3resource = s3
-    context.testdir_random_id = testdir_random_id
-    context.backup_bucket = bucket
-    # use the same bucket for now for simplicity
-    context.store_bucket = bucket
 
 
 @typechecked(always=True)

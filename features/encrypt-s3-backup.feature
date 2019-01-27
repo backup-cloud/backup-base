@@ -6,7 +6,8 @@ based on a location given in SSM parameter store and uses that key to
 upload and encrypted backup of our data to an S3 bucket.
 
     Background: we have prepared to run encrypted backups
-    given I have a private public key pair
+    given I have access to an account for doing backups
+      and I have a private public key pair
       and the public key from that key pair is stored in an s3 bucket
 
     @future

@@ -1,7 +1,7 @@
 from typeguard import typechecked  # type: ignore
 from os import environ
-from backup_context import ensure_s3_paths_in_ssm
-from s3_backup import backup_s3_to_s3
+from backup_cloud.base import ensure_s3_paths_in_ssm
+from backup_cloud.s3 import backup_s3_to_s3
 import boto3
 import random
 import string

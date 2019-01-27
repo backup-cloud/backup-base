@@ -10,7 +10,7 @@ The main class provided in this repo is a context class which reads
 configuration from S3 and handles backup encryption for you.
 
 
-    >>> from backup_context import BackupContext
+    >>> from backup_cloud import BackupContext
     >>> bc = BackupContext(ssm_path = "/bc-demo", recipients = ["test@example.com"] )
     >>> cp = bc.run("myscript.sh")
     >>> print(cp.stdout.decode('UTF-8').strip())
