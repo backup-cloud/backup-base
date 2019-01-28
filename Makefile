@@ -3,9 +3,9 @@ ifeq (,$(wildcard $(KEYFILE)))
   $(error "no key present - run `make prepare' to build test environment")
 endif
 
-ifeq (,$(AWS_ACCOUNT_NAME))
-  AWS_ACCOUNT_NAME = michael
-endif
+AWS_ACCOUNT_NAME = michael
+PYTHON = python
+BEHAVE = behave
 
 # these variables cannot be immediate since running the prepare target
 # may change the values.
@@ -30,10 +30,10 @@ test: build
 	# echo "********** environment **********"
 	# env
 	# echo "*********************************"
-	python -m pytest -vv tests
-	behave --tags '~@future' features-mocked
-	behave --tags '~@future'
-	python -m doctest -v README.md
+	$(PYTHON) -m pytest -vv tests
+	$(BEHAVE) --tags '~@future' features-mocked
+	$(BEHAVE) --tags '~@future'
+	$(PYTHON) -m doctest -v README.md
 
 init:
 	pip install -r requirements.txt
@@ -50,8 +50,8 @@ prep_test: prepare-test-enc-backup.yml
 	ansible-playbook -vvv prepare-test-enc-backup.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
 
 wip: build
-	behave --wip features-mocked
-	behave --wip
+	$(BEHAVE) --wip features-mocked
+	$(BEHAVE) --wip
 
 build:
 

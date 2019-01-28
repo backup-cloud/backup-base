@@ -36,13 +36,12 @@ before_script:
   - $SH "DEBIAN_FRONTEND=noninteractive apt-get install -y ansible python-pip python-boto3"
   - $SH "python --version"
   - $SH "pip3 install -r requirements.txt"
-
   - $SH "openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d"
   - $SH "echo $test_random_key > .anslk_random_testkey"
 
 script:
   - $SH "make prep_test AWS_ACCOUNT_NAME=travis"
-  - $SH "make test"
+  - $SH "make test PYTHON=python3"
   - $SH "rm aws_credentials_travis.yml"
 
 after_script:
