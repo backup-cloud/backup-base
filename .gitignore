@@ -24,3 +24,4 @@ __pycache__
 *.gpg
 bin/backup_encrypt
 *.pyc
+dist

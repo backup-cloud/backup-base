@@ -19,7 +19,7 @@ find . \( -type d \( -name venv -o -name .git \) -prune -false \) -o -type f | (
 	    *.py)
 		# probably an effective bug - T484 is needed because otherwise it fails
 		# claiming "Module '__future__' has no attribute 'annotations'"
-		flake8 --ignore=W503,E402,E501,T484,T499 "$file" &&
+		flake8 --ignore=W503,E402,E5b01,T484,T499 "$file" &&
 		    ! grep --with-filename --line-number 'pdb.set_trace\|FIXME' "$file" ;;
 	    *.yaml | *.yml )
 		yamllint --format parsable "$file" -d "line-length: {max: 70}";;

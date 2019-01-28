@@ -6,4 +6,4 @@ hamcrest
 yamllint
 python-dotenv
 boto3
-pygpgme
+

@@ -8,7 +8,7 @@ setup(
     version="0.1",
     description="Backup your entire (AWS) cloud - base part",
     author="Michael De La Rue",
-    author_email="",
+    author_email="michael-paddle@fake.github.com",
     url="https://github.com/michael-paddle/backup-base/",
-    packages=["distutils", "distutils.command"],
+    packages=["backup_cloud"],
 )
