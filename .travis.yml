@@ -28,10 +28,11 @@ branches:
     - /devel.*/
 
 before_script:
+  - $SH "apt-get update"
   - $SH "apt-get install software-properties-common"
-  - $SH "$SUDO add-apt-repository ppa:ansible/ansible-2.6 -y"
-  - $SH "$SUDO apt-get update"
-  - $SH "$SUDO apt-get install python3-pip shellcheck ansible python-gpgme shellcheck"
+  - $SH "add-apt-repository ppa:ansible/ansible-2.6 -y"
+  - $SH "apt-get update"
+  - $SH "apt-get install python3-pip shellcheck ansible python-gpgme shellcheck"
   - $SH "pip install -r requirements.txt"
   - $SH "openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d"
   - $SH "echo $test_random_key > .anslk_random_testkey"
