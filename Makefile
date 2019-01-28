@@ -38,17 +38,16 @@ test: build
 init:
 	pip install -r requirements.txt
 
-
-
 prepare: .prepare_complete
 
+.prepare_complete: prepare-account prep_test
+	touch .prepare_complete
 
-.prepare_complete: prepare-account.yml prep_test
+prepare-account: prepare-account.yml
 	ansible-playbook -vvv prepare-account.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
 
 prep_test: prepare-test-enc-backup.yml
 	ansible-playbook -vvv prepare-test-enc-backup.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
-	touch .prepare_complete
 
 wip: build
 	behave --wip features-mocked
@@ -65,5 +64,5 @@ testfix:
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
 
-.PHONY: all test init prepare prep_test wip build lint testfix fix
+.PHONY: all test init prepare prep_test prepare_account wip build lint testfix fix
 

@@ -39,7 +39,7 @@ before_script:
   - $SH "echo $test_random_key > .anslk_random_testkey"
 
 script:
-  - $SH "make prepare_test AWS_ACCOUNT_NAME=travis"
+  - $SH "make prep_test AWS_ACCOUNT_NAME=travis"
   - $SH "make test"
   - $SH "rm aws_credentials_travis.yml"
 
