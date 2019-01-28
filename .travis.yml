@@ -21,8 +21,8 @@ before_script:
   - sudo apt-get update
   - sudo apt-get install python3-pip shellcheck ansible python-gpgme shellcheck
   - pip install -r requirements.txt
-  - openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d
-  - echo $test_random_key > .anslk_random_testkey
+  - "openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d"
+  - "echo $test_random_key > .anslk_random_testkey"
 
 script:
   - "make prepare_travis"

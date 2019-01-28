@@ -42,7 +42,7 @@ prepare: .prepare_complete
 .prepare_complete: prepare-account.yml prep_test
 	ansible-playbook -vvv prepare-account.yml
 
-prepare_travis: prep_vars prep_test
+prepare_travis: prep_test
 	ansible-playbook -vvv prepare-test-enc-backup.yml --extra-vars=aws_account_name=travis
 	touch .prepare_complete
 
