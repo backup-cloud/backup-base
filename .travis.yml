@@ -29,8 +29,8 @@ branches:
 
 before_script:
   - $SH "apt-get update"
-  - $SH "apt-get install software-properties-common"
-  - $SH "add-apt-repository ppa:ansible/ansible-2.6 -y"
+  - $SH "apt-get install -y software-properties-common"
+  - $SH "add-apt-repository -y ppa:ansible/ansible-2.6"
   - $SH "apt-get update"
   - $SH "apt-get install python3-pip shellcheck ansible python-gpgme shellcheck"
   - $SH "pip install -r requirements.txt"
