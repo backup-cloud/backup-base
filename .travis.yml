@@ -29,6 +29,7 @@ branches:
     - /devel.*/
 
 before_script:
+  - $SH $SUDO apt-get install software-properties-common
   - $SH $SUDO add-apt-repository ppa:ansible/ansible-2.6 -y
   - $SH $SUDO apt-get update
   - $SH $SUDO apt-get install python3-pip shellcheck ansible python-gpgme shellcheck
