@@ -2,7 +2,7 @@ pytest
 behave
 typeguard
 flake8
-hamcrest
+PyHamcrest
 yamllint
 python-dotenv
 boto3
