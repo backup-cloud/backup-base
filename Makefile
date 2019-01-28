@@ -3,6 +3,10 @@ ifeq (,$(wildcard $(KEYFILE)))
   $(error "no key present - run `make prepare' to build test environment")
 endif
 
+ifeq (,$(AWS_ACCOUNT_NAME))
+  AWS_ACCOUNT_NAME = michael
+endif
+
 # these variables cannot be immediate since running the prepare target
 # may change the values.
 RANDOM_KEY = $(shell cat $(KEYFILE))
@@ -40,14 +44,10 @@ prepare: .prepare_complete
 
 
 .prepare_complete: prepare-account.yml prep_test
-	ansible-playbook -vvv prepare-account.yml
-
-prepare_travis: prep_test
-	ansible-playbook -vvv prepare-test-enc-backup.yml --extra-vars=aws_account_name=travis
-	touch .prepare_complete
+	ansible-playbook -vvv prepare-account.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
 
 prep_test: prepare-test-enc-backup.yml
-	ansible-playbook -vvv prepare-test-enc-backup.yml
+	ansible-playbook -vvv prepare-test-enc-backup.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
 	touch .prepare_complete
 
 wip: build
