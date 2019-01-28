@@ -33,9 +33,10 @@ before_script:
   - $SH "add-apt-repository -y ppa:ansible/ansible-2.7"
   - $SH "apt-get update"
   - $SH "apt-get install -y python3-pip shellcheck python3-gpg shellcheck"
-  - $SH "apt-get install -y ansible python-pip python-boto3"
+  - $SH "DEBIAN_FRONTEND=noninteractive apt-get install -y ansible python-pip python-boto3"
   - $SH "python --version"
   - $SH "pip3 install -r requirements.txt"
+
   - $SH "openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d"
   - $SH "echo $test_random_key > .anslk_random_testkey"
 
