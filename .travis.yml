@@ -9,8 +9,7 @@ services:
   - docker
 
 env:
-  - SH="docker exec -t ubuntu-test bash -c"
-  - SUDO="" 
+  - SH="docker exec -t ubuntu-test bash -c" SUDO=""
 
 before_install:
   - docker run -d --name ubuntu-test -e LC_ALL="en_US.UTF-8" -e LANG="en_US.UTF-8" -v $(pwd):/travis -w /travis ubuntu:latest tail -f /dev/null
