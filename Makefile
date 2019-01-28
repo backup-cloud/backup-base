@@ -34,10 +34,19 @@ test: build
 init:
 	pip install -r requirements.txt
 
+
+
 prepare: .prepare_complete
 
-.prepare_complete: prepare-account.yml prepare-test-enc-backup.yml
+
+.prepare_complete: prepare-account.yml prep_test
 	ansible-playbook -vvv prepare-account.yml
+
+prepare_travis: prep_vars prep_test
+	ansible-playbook -vvv prepare-test-enc-backup.yml --extra-vars=aws_account_name=travis
+	touch .prepare_complete
+
+prep_test: prepare-test-enc-backup.yml
 	ansible-playbook -vvv prepare-test-enc-backup.yml
 	touch .prepare_complete
 
@@ -56,5 +65,5 @@ testfix:
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
 
-.PHONY: build
+.PHONY: all test init prepare prep_test wip build lint testfix fix
 
