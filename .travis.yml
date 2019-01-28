@@ -3,12 +3,19 @@ sudo: required
 
 language: python
 python:
-  - 3.6
-matrix:
-  include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
+  - 3.7
+
+services:
+  - docker
+
+env: SH="docker exec -t ubuntu-test bash -c"
+
+
+# matrix:
+#   include:
+#     - python: 3.7
+#       distro: ubuntu1804
+#       sudo: true
 
 branches:
   only:
@@ -17,31 +24,31 @@ branches:
     - /devel.*/
 
 before_script:
-  - sudo add-apt-repository ppa:ansible/ansible-2.6 -y
-  - sudo apt-get update
-  - sudo apt-get install python3-pip shellcheck ansible python-gpgme shellcheck
-  - pip install -r requirements.txt
-  - "openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d"
-  - "echo $test_random_key > .anslk_random_testkey"
+  - $SH sudo add-apt-repository ppa:ansible/ansible-2.6 -y
+  - $SH sudo apt-get update
+  - $SH sudo apt-get install python3-pip shellcheck ansible python-gpgme shellcheck
+  - $SH pip install -r requirements.txt
+  - $SH "openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d"
+  - $SH "echo $test_random_key > .anslk_random_testkey"
 
 script:
-  - "make prepare_travis"
-  - "make test"
-  - rm aws_credentials_travis.yml
+  - $SH "make prepare_travis"
+  - $SH "make test"
+  - $SH rm aws_credentials_travis.yml
 
 after_script:
-  - openssl aes-256-cbc -K $encrypted_a45cc096e026_key -iv $encrypted_a45cc096e026_iv -in deploy_key.enc -out deploy_key -d
-  - chmod 400 deploy_key
-  - ./push_on_success.sh
-  - rm deploy_key
+  - $SH openssl aes-256-cbc -K $encrypted_a45cc096e026_key -iv $encrypted_a45cc096e026_iv -in deploy_key.enc -out deploy_key -d
+  - $SH chmod 400 deploy_key
+  - $SH ./push_on_success.sh
+  - $SH rm deploy_key
   
 before_deploy:
   # Set up git user name and tag this commit
-  # - git config --local user.name "YOUR GIT USER NAME"
-  # - git config --local user.email "YOUR GIT USER EMAIL"
-  - "python3 setup.py sdist" 
-  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
-  - git tag $TRAVIS_TAG
+  # - $SH git config --local user.name "YOUR GIT USER NAME"
+  # - $SH git config --local user.email "YOUR GIT USER EMAIL"
+  - $SH "python3 setup.py sdist" 
+  - $SH export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
+  - $SH git tag $TRAVIS_TAG
 deploy:
   provider: releases
   api_key:
