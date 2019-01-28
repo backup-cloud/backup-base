@@ -5,7 +5,7 @@ endif
 
 # these variables cannot be immediate since running the prepare target
 # may change the values.
-RANDOM_KEY = $(file < $(KEYFILE))
+RANDOM_KEY = $(shell cat $(KEYFILE))
 export RANDOM_KEY
 S3_TEST_BUCKET = test-backup-$(RANDOM_KEY)
 export S3_TEST_BUCKET
