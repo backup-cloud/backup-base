@@ -14,12 +14,12 @@ find . \( -type d \( -name venv -o -name .git \) -prune -false \) -o -type f | (
 	case "$file" in
 	    ./features*/steps/*.py)
 		# T499 seems to be a mypy failure
-		flake8 --ignore=W503,E402,E501,F811,T484,T499 "$file" --builtins=given,when,then &&
+		flake8 --ignore=W503,E402,E501,F811,T484,T499 "$file" --max-line-length=99 --builtins=given,when,then &&
 		    ! grep --with-filename --line-number 'pdb.set_trace\|FIXME' "$file" ;;
 	    *.py)
 		# probably an effective bug - T484 is needed because otherwise it fails
 		# claiming "Module '__future__' has no attribute 'annotations'"
-		flake8 --ignore=W503,E402,E5b01,T484,T499 "$file" &&
+		flake8 --ignore=W503,E402,E5b01,T484,T499 "$file" --max-line-length=99 &&
 		    ! grep --with-filename --line-number 'pdb.set_trace\|FIXME' "$file" ;;
 	    *.yaml | *.yml )
 		yamllint --format parsable "$file" -d "line-length: {max: 70}";;
