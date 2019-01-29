@@ -29,7 +29,12 @@ def step_impl(context) -> None:
     c.create_key(userid, algorithm="rsa3072", expires_in=31536000, encrypt=True)
 
     context.gpg_context = c
-    context.public_key = c.key_export_minimal(pattern=userid)
+
+    try:
+        context.public_key = c.key_export_minimal(pattern=userid)
+    except AttributeError:
+        context.public_key = c.key_export(pattern=userid)
+
     context.private_key = c.key_export_secret(pattern=userid)
 
 
