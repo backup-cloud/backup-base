@@ -1,14 +1,15 @@
-KEYFILE =.anslk_random_testkey
-
-AWS_ACCOUNT_NAME = michael
-PYTHON = python
-BEHAVE = behave
+AWS_ACCOUNT_NAME ?= michael
+PYTHON ?= python
+BEHAVE ?= behave
+KEYFILE ?=.anslk_random_testkey
 
 # these variables cannot be immediate since running the prepare target
 # may change the values.
-RANDOM_KEY = $(shell cat $(KEYFILE))
-export RANDOM_KEY
+ifneq ($(wildcard $(KEYFILE)),)
+  RANDOM_KEY = $(shell cat $(KEYFILE))
+endif
 S3_TEST_BUCKET = test-backup-$(RANDOM_KEY)
+export RANDOM_KEY
 export S3_TEST_BUCKET
 
 all: prepare lint build test
