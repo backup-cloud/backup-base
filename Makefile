@@ -42,7 +42,7 @@ apk_install: apk_packages_install init
 
 apk_packages_install:
 	apk update
-	apk add python3 py3-gpgme ansible
+	apk add python3 py3-gpgme ansible openssl
 
 deb_install: deb_packages_install init
 
