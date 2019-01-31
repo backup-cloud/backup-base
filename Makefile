@@ -33,18 +33,19 @@ doctest:
 	$(PYTHON) -m doctest -v README.md
 
 init:
-	pip install -r requirements.txt
+	$(PYTHON) -m pip install -r requirements.txt
 
 # shellcheck does not exist yet on alpine so we skip that.
 
-PYTHON_REQS := $(PYTHON) -m pip install -r requirements.txt
+apk_install: apk_packages_install init
 
-apk_install:
+apk_packages_install:
 	apk update
 	apk add python3 py3-gpgme ansible
-	$(PYTHON_REQS)
 
-deb_install:
+deb_install: deb_packages_install init
+
+deb_packages_install:
 	apt-get update
 	apt-get install -y software-properties-common
 	add-apt-repository -y ppa:ansible/ansible-2.7
