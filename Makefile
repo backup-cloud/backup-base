@@ -37,7 +37,7 @@ init:
 
 # shellcheck does not exist yet on alpine so we skip that.
 
-PYTHON_REQS := python3.7 -m pip install -r requirements.txt
+PYTHON_REQS := $(PYTHON) -m pip install -r requirements.txt
 
 apk_install:
 	apk update
