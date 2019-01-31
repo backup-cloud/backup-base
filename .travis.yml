@@ -9,7 +9,7 @@ services:
   - docker
 
 env:
-  - SH="docker exec -t backup-test bash -c" SUDO="" DOCKER_IMAGE=alipne:latest SHELLCHECK=/bin/true
+  - SH="docker exec -t backup-test bash -c" SUDO="" DOCKER_IMAGE=alpine:latest SHELLCHECK=/bin/true
   - SH="docker exec -t backup-test bash -c" SUDO="" DOCKER_IMAGE=ubuntu:latest
 
 before_install:
