@@ -9,8 +9,8 @@ services:
   - docker
 
 env:
-  - SH="docker exec -t backup-test sh -c" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true
-  - SH="docker exec -t backup-test bash -c" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_GOAL=deb_install
+  - SH="docker exec -t backup-test sh -c" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="then apk update; apt add make;"
+  - SH="docker exec -t backup-test bash -c" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_GOAL=deb_install INSTALL_MAKE="then apt update; apt install make;"
 
 before_install:
   - docker run -d --name backup-test -e LC_ALL="en_US.UTF-8" -e LANG="en_US.UTF-8" -v $(pwd):/travis -w /travis $DOCKER_IMAGE tail -f /dev/null
@@ -29,7 +29,7 @@ branches:
     - /devel.*/
 
 before_script:
-  - $SH 'if [[ "$TRAVIS_OS_NAME" == "ubuntu" ]]; then make deb_install; fi'
+  - $SH '$INSTALL_MAKE'
   - $SH "make $INSTALL_GOAL"
   - $SH "python --version"
   - $SH "python3.7 -m pip install -r requirements.txt"

@@ -40,9 +40,12 @@ init:
 
 # shellcheck does not exist yet on alpine so we skip that.
 
+PYTHON_REQS := python3.7 -m pip install -r requirements.txt
+
 apk_install:
 	apk update
 	apk add python3 py3-gpgme ansible
+	$(PYTHON_REQS)
 
 deb_install:
 	apt-get update
@@ -51,6 +54,7 @@ deb_install:
 	apt-get update
 	apt-get install -y python3.7 python3-pip shellcheck python3-gpg shellcheck
 	DEBIAN_FRONTEND=noninteractive apt-get install -y ansible python-pip python-boto3
+	$(PYTHON_REQS)
 
 
 prepare: .prepare_complete
