@@ -6,6 +6,11 @@ import string
 from hamcrest import assert_that, greater_than
 from typeguard import typechecked  # type: ignore
 from botocore.exceptions import ClientError
+from typing import Any
+
+given: Any
+when: Any
+then: Any
 
 
 def eprint(*args, **kwargs):
@@ -43,7 +48,7 @@ def step_impl(context) -> None:
 
 @typechecked(always=True)
 @given(u"the public key from that key pair is stored in an s3 bucket")
-def step_impl(context) -> None:
+def step_impl_1(context) -> None:
 
     # by contrast random_test_prefix is used for resource local to
     # this test like an S3 path that can be created and destroyed
@@ -68,7 +73,7 @@ def step_impl(context) -> None:
 
 @typechecked(always=True)
 @given(u"that I have configured a public key and a reference to it")
-def step_impl(context) -> None:
+def step_impl_2(context) -> None:
     context.execute_steps(
         u"""
           given I have an S3 bucket for backup testing
@@ -80,7 +85,7 @@ def step_impl(context) -> None:
 
 @typechecked(always=True)
 @when(u"I run my backup container giving the base path")
-def step_impl(context) -> None:
+def step_impl_3(context) -> None:
     raise NotImplementedError(
         u"STEP: When I run my backup container giving the base path"
     )

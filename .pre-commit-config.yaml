@@ -20,3 +20,9 @@ repos:
         - --ignore=W503,E402,E501,F811
         - --max-line-length=131
         - --builtins=given,when,then
+    - id: check-yaml
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: 'master'  # Use the sha / tag you want to point at
+  hooks:
+  -   id: mypy
+      exclude: '^features-mocked/environment.py' 

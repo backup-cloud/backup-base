@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
 import boto3
 from hamcrest import assert_that, greater_than
+from typing import Any
+
+given: Any
 
 
 @given(u"I have access to an account for doing backups")

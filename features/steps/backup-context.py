@@ -2,6 +2,11 @@ from backup_cloud import BackupContext
 from backup_cloud.base import ensure_s3_paths_in_ssm
 import os
 import sys
+from typing import Any
+
+given: Any
+when: Any
+then: Any
 
 
 def eprint(*args, **kwargs) -> None:
@@ -22,5 +27,5 @@ def step_impl(context) -> None:
 
 
 @when(u"I request an encryption shell script")
-def step_impl(context) -> None:
+def step_impl_1(context) -> None:
     context.shell_env = context.backup_context.make_shell()

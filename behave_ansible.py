@@ -39,7 +39,7 @@ def call_ansible_step(
     eprint("calling ansible with: ", step_name)
     ansible_args = ["ansible-playbook", "-vvv", "--tags", step_name, playbook]
     if extra_vars is not None:
-        ansible_args.extend(["--extra-vars", extra_vars])
+        ansible_args.extend(["--extra-vars=" + v for v in extra_vars])
     proc_res = run(args=ansible_args, capture_output=True)
     eprint("Ansible STDOUT:\n", proc_res.stdout, "Ansible STDERR:\n", proc_res.stderr)
     if proc_res.returncode > 0:
