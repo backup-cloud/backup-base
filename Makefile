@@ -17,6 +17,8 @@ export S3_TEST_BUCKET
 all: prepare lint build test
 
 test: build pytest behave doctest
+
+behave: checkvars
 	$(BEHAVE) --tags '~@future' features-mocked
 	$(BEHAVE) --tags '~@future'
 
@@ -77,5 +79,5 @@ testfix:
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
 
-.PHONY: all test init prepare prep_test prepare_account wip build lint testfix fix clean
+.PHONY: all test behave checkvars pytest doctest init deb_install apk_install prepare prep_test prepare_account wip build lint testfix fix clean
 

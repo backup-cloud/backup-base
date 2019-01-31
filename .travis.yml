@@ -30,7 +30,7 @@ branches:
 
 before_script:
   - $SH 'if [[ "$TRAVIS_OS_NAME" == "ubuntu" ]]; then make deb_install; fi'
-  - "make $INSTALL_GOAL"
+  - $SH "make $INSTALL_GOAL"
   - $SH "python --version"
   - $SH "python3.7 -m pip install -r requirements.txt"
   - $SH "openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d"
