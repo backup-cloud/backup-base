@@ -9,7 +9,7 @@ services:
   - docker
 
 env:
-  - SH="docker exec -t backup-test sh -vxc" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="apk update; apt add make;"
+  - SH="docker exec -t backup-test sh -vxc" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="apk update; apk add make;"
   - SH="docker exec -t backup-test bash -vxc" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_MAKE="apt update; apt install make;" INSTALL_GOAL=deb_install
 
 before_install:

@@ -1,7 +1,4 @@
 KEYFILE =.anslk_random_testkey
-ifeq (,$(wildcard $(KEYFILE)))
-  $(error "no key present - run `make prepare' to build test environment")
-endif
 
 AWS_ACCOUNT_NAME = michael
 PYTHON = python
