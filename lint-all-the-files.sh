@@ -9,7 +9,7 @@
 
 
 
-if [ -z ${SHELLCHECK} ]
+if [ -z "${SHELLCHECK}" ]
 then
     SHELLCHECK=shellcheck
 fi
