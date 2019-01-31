@@ -9,8 +9,8 @@ services:
   - docker
 
 env:
-  - SH="docker exec -t backup-test sh -c" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="then apk update; apt add make;"
-  - SH="docker exec -t backup-test bash -c" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_GOAL=deb_install INSTALL_MAKE="then apt update; apt install make;"
+  - SH="docker exec -t backup-test sh -vxc" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="then apk update; apt add make;"
+  - SH="docker exec -t backup-test bash -vxc" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_GOAL=deb_install INSTALL_MAKE="then apt update; apt install make;"
 
 before_install:
   - docker run -d --name backup-test -e LC_ALL="en_US.UTF-8" -e LANG="en_US.UTF-8" -v $(pwd):/travis -w /travis $DOCKER_IMAGE tail -f /dev/null
@@ -32,7 +32,6 @@ before_script:
   - $SH '$INSTALL_MAKE'
   - $SH "make $INSTALL_GOAL"
   - $SH "python --version"
-  - $SH "python3.7 -m pip install -r requirements.txt"
   - $SH "openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d"
   - $SH "echo $test_random_key > .anslk_random_testkey"
 
