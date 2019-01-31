@@ -38,6 +38,21 @@ test: build
 init:
 	pip install -r requirements.txt
 
+# shellcheck does not exist yet on alpine so we skip that.
+
+apk_install:
+	apk update
+	apk add python3 py3-gpgme ansible
+
+deb_install:
+	apt-get update
+	apt-get install -y software-properties-common
+	add-apt-repository -y ppa:ansible/ansible-2.7
+	apt-get update
+	apt-get install -y python3.7 python3-pip shellcheck python3-gpg shellcheck
+	DEBIAN_FRONTEND=noninteractive apt-get install -y ansible python-pip python-boto3
+
+
 prepare: .prepare_complete
 
 .prepare_complete: prepare-account prep_test

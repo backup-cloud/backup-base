@@ -30,6 +30,9 @@ def step_impl(context) -> None:
 
     context.gpg_context = c
 
+    # ubuntu bionic doesn't ahve key_export_minimial() so we fallback
+    # in real life we can assume that the users would export using
+    # some graphical tool.
     try:
         context.public_key = c.key_export_minimal(pattern=userid)
     except AttributeError:

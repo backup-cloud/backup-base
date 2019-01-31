@@ -6,6 +6,14 @@
 # copyright Michael De La Rue (c) 2018  - paid work for Paddle.com
 #
 # This file is licensed under the AGPLv3
+
+
+
+if [ -z ${SHELLCHECK} ]
+then
+    SHELLCHECK=shellcheck
+fi
+
 find . \( -type d \( -name venv -o -name .git \) -prune -false \) -o -type f | ( 
     failcount=0
     # substatus=0
@@ -24,7 +32,7 @@ find . \( -type d \( -name venv -o -name .git \) -prune -false \) -o -type f | (
 	    *.yaml | *.yml )
 		yamllint --format parsable "$file" -d "line-length: {max: 70}";;
 	    *.sh)
-		shellcheck -f gcc "$file"
+		${SHELLCHECK} -f gcc "$file"
 	esac
 	newstat=$?
 	if [[ "$newstat" -gt "$status" ]]
