@@ -26,3 +26,11 @@ repos:
   hooks:
   -   id: mypy
       exclude: '^features-mocked/environment.py' 
+- repo: https://github.com/jumanjihouse/pre-commit-hooks
+  rev: 'master'  # Use the sha / tag you want to point at
+  hooks:
+  -   id: shellcheck
+-   repo: https://github.com/Lucas-C/pre-commit-hooks-go
+    sha: v1.0.0
+    hooks:
+    -   id: checkmake

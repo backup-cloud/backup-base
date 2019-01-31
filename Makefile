@@ -16,23 +16,21 @@ export S3_TEST_BUCKET
 
 all: prepare lint build test
 
-test: build
-	if [ '!' -f $${KEYFILE} ] ;\
-	then \
-		echo "file: $(KEYFILE) missing - run make prepare first" ; \
-		exit 5 ; \
-	fi
-	if [ -z $${RANDOM_KEY} ] ; \
-	then \
-		echo 'no RANDOM_KEY found - N.B. be sure you are using a recent gmake!!! run *make prepare* to build test environment.'  ; \
-		exit 5 ; \
-	fi
-	# echo "********** environment **********"
-	# env
-	# echo "*********************************"
-	$(PYTHON) -m pytest -vv tests
+test: build pytest behave doctest
 	$(BEHAVE) --tags '~@future' features-mocked
 	$(BEHAVE) --tags '~@future'
+
+checkvars:
+	if [ '!' -f $${KEYFILE} ] ; then \
+		echo "file: $(KEYFILE) missing - run make prepare first" ; exit 5 ; fi
+	if [ -z $${RANDOM_KEY} ] ; then \
+		echo 'no RANDOM_KEY found - N.B. be sure you are using a recent gmake!!! run *make prepare* to build test environment.'  ; exit 5 ; fi
+
+
+pytest:
+	$(PYTHON) -m pytest -vv tests
+
+doctest:
 	$(PYTHON) -m doctest -v README.md
 
 init:
@@ -79,5 +77,5 @@ testfix:
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
 
-.PHONY: all test init prepare prep_test prepare_account wip build lint testfix fix
+.PHONY: all test init prepare prep_test prepare_account wip build lint testfix fix clean
 

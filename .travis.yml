@@ -29,7 +29,7 @@ branches:
     - /devel.*/
 
 before_script:
-  - $SH 'if [[ "$TRAVIS_OS_NAME" == "ubuntu" ]]; then make deb_install; fi"'
+  - $SH 'if [[ "$TRAVIS_OS_NAME" == "ubuntu" ]]; then make deb_install; fi'
   - "make $INSTALL_GOAL"
   - $SH "python --version"
   - $SH "python3.7 -m pip install -r requirements.txt"
