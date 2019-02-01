@@ -1,7 +1,10 @@
 AWS_ACCOUNT_NAME ?= michael
+AWS_REGION ?= us-east-2
 PYTHON ?= python
 BEHAVE ?= behave
 KEYFILE ?=.anslk_random_testkey
+
+export AWS_REGION
 
 # these variables cannot be immediate since running the prepare target
 # may change the values.
@@ -51,7 +54,7 @@ deb_packages_install:
 	apt-get install -y software-properties-common
 	add-apt-repository -y ppa:ansible/ansible-2.7
 	apt-get update
-	apt-get install -y python3.7 python3-pip shellcheck python3-gpg shellcheck
+	apt-get install -y python3.7 python3-pip shellcheck libgpgme11 python3-gpg shellcheck
 	DEBIAN_FRONTEND=noninteractive apt-get install -y ansible python-pip python-boto3
 	$(PYTHON_REQS)
 
@@ -81,6 +84,5 @@ testfix:
 
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
-
 .PHONY: all test behave checkvars pytest doctest init deb_install apk_install prepare prep_test prepare_account wip build lint testfix fix clean
 
