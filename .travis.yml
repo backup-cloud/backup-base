@@ -11,8 +11,8 @@ services:
 # Ubuntu doesn't work properly because the python3-gpgme is an old version (2.10) without key export!
 # we use this only to access shellcheck and so on
 env:
-  - SH="docker exec -t backup-test sh -vxc" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="apk update; apk add make;" PYTHON=python3.6 MAKE="make -d" AWS_REGION=us-east-2
-  - SH="docker exec -t backup-test bash -vxc" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_MAKE="apt update; apt install make;" INSTALL_GOAL=deb_install PYTHON=python3.7 MAKE="make -d" AWS_REGION=eu-entral-1
+  - SH="docker exec -t backup-test sh -vxc" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="apk update; apk add make;" PYTHON=python3.6 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
+  - SH="docker exec -t backup-test bash -vxc" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_MAKE="apt update; apt install make;" INSTALL_GOAL=deb_install PYTHON=python3.7 MAKE="make -d" AWS_DEFAULT_REGION=eu-entral-1
 
 before_install:
   - docker run -d --name backup-test -e LC_ALL="en_US.UTF-8" -e LANG="en_US.UTF-8" -v $(pwd):/travis -w /travis $DOCKER_IMAGE tail -f /dev/null
@@ -39,7 +39,7 @@ before_script:
 
 script:
   - $SH "make prep_test AWS_ACCOUNT_NAME=travis PYTHON=$PYTHON"
-  - if [ "$DOCKER_IMAGE" = "alpine:latest" ]; then $SH "$MAKE behave doctest PYTHON=$PYTHON AWS_REGION=$AWS_REGION"; fi
+  - if [ "$DOCKER_IMAGE" = "alpine:latest" ]; then $SH "$MAKE behave doctest PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"; fi
   - if [ "$DOCKER_IMAGE" = "ubuntu:latest" ]; then $SH "$MAKE lint pytest PYTHON=$PYTHON"; fi
   - $SH "rm aws_credentials_travis.yml"
 

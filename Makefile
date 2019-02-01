@@ -1,10 +1,10 @@
 AWS_ACCOUNT_NAME ?= michael
-AWS_REGION ?= us-east-2
+AWS_DEFAULT_REGION ?= us-east-2
 PYTHON ?= python
 BEHAVE ?= behave
 KEYFILE ?=.anslk_random_testkey
 
-export AWS_REGION
+export AWS_DEFAULT_REGION
 
 # these variables cannot be immediate since running the prepare target
 # may change the values.
