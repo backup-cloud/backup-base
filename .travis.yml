@@ -39,8 +39,8 @@ before_script:
 
 script:
   - $SH "make prep_test AWS_ACCOUNT_NAME=travis PYTHON=$PYTHON"
-  - if [ "$DOCKER_IMAGE" = "alpine:latest" ]; then $SH "$MAKE behave doctest PYTHON=$PYTHON AWS_REGION=$AWS_REGION; fi"
-  - if [ "$DOCKER_IMAGE" = "ubuntu:latest" ]; then $SH "$MAKE lint pytest PYTHON=$PYTHON; fi"
+  - if [ "$DOCKER_IMAGE" = "alpine:latest" ]; then $SH "$MAKE behave doctest PYTHON=$PYTHON AWS_REGION=$AWS_REGION"; fi
+  - if [ "$DOCKER_IMAGE" = "ubuntu:latest" ]; then $SH "$MAKE lint pytest PYTHON=$PYTHON"; fi
   - $SH "rm aws_credentials_travis.yml"
 
 after_script:
