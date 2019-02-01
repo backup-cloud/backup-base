@@ -9,8 +9,9 @@ services:
   - docker
 
 env:
-  - SH="docker exec -t backup-test sh -vxc" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="apk update; apk add make;" PYTHON=python3.6 MAKE="make -d"
-  - SH="docker exec -t backup-test bash -vxc" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_MAKE="apt update; apt install make;" INSTALL_GOAL=deb_install PYTHON=python3.7 MAKE="make -d"
+  - SH="docker exec -t backup-test sh -vxc" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="apk update; apk add make;" PYTHON=python3.6 MAKE="make -d" AWS_REGION=us-east-2
+# Ubuntu doesn't work because the python3-gpgme is an old version (2.10) without key export!
+#   - SH="docker exec -t backup-test bash -vxc" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_MAKE="apt update; apt install make;" INSTALL_GOAL=deb_install PYTHON=python3.7 MAKE="make -d" AWS_REGION=eu-entral-1
 
 before_install:
   - docker run -d --name backup-test -e LC_ALL="en_US.UTF-8" -e LANG="en_US.UTF-8" -v $(pwd):/travis -w /travis $DOCKER_IMAGE tail -f /dev/null
@@ -37,7 +38,8 @@ before_script:
 
 script:
   - $SH "make prep_test AWS_ACCOUNT_NAME=travis PYTHON=$PYTHON"
-  - $SH "make test PYTHON=$PYTHON"
+  - $SH "if [ "$DOCKER_IMAGE" = "alpine:latest" ]; then $MAKE behave doctest PYTHON=$PYTHON ; fi"
+  - $SH "if [ "$DOCKER_IMAGE" = "ubuntu:latest" ]; then $MAKE lint pytest PYTHON=$PYTHON ; fi"
   - $SH "rm aws_credentials_travis.yml"
 
 after_script:
