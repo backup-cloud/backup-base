@@ -18,14 +18,14 @@ jobs:
       # old version (2.10) without key export!  we use this only to
       # access shellcheck and so on
       name: test-local-ubuntu
-      env: DOCKER_SH="docker exec -t backup-test bash -vxc" DOCKER_IMAGE=ubuntu:latest PYTHON=python3.6 MAKE="make" AWS_DEFAULT_REGION=eu-central-1
+      env: DOCKER_SH="docker exec -t backup-test bash -vxc" DOCKER_IMAGE=ubuntu:latest PYTHON=python3.7 MAKE="make" AWS_DEFAULT_REGION=eu-central-1
       script:
         - sh -vx ./build-script/docker_start.sh
         - sh -vx ./build-script/before_script.sh
         - $DOCKER_SH "PYTHON=$PYTHON ./build-script/ubuntu_container_prep.sh"
         - $DOCKER_SH "$MAKE lint pytest PYTHON=$PYTHON"
     - name: test-functional-alpine
-      env: DOCKER_SH="docker exec -t backup-test sh -vxc" DOCKER_IMAGE=alpine:latest PYTHON=python3.7 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
+      env: DOCKER_SH="docker exec -t backup-test sh -vxc" DOCKER_IMAGE=alpine:latest PYTHON=python3.6 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
       script:
         - sh -vx ./build-script/docker_start.sh
         - sh -vx ./build-script/before_script.sh
