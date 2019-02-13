@@ -20,21 +20,23 @@ jobs:
       name: test-local-ubuntu
       env: DOCKER_SH="docker exec -t backup-test sh -vxc" DOCKER_IMAGE=alpine:latest PYTHON=python3.6 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
       script:
-        - make -f MakeDocker.mk build-script/docker_start
-        - $DOCKER_SH "INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE='apk update; apk add make;' build-script/docker_prep.sh"
+        - sh -vx ./build-script/docker_start.sh
+        - sh -vx ./build-script/before_script.sh
+        - $DOCKER_SH "INSTALL_GOAL=apk_install SHELLCHECK=/bin/true build-script/docker_prep.sh"
         - $DOCKER_SH "$MAKE lint pytest PYTHON=$PYTHON"
     - name: test-functional-ubuntu
       env: SH="docker exec -t backup-test bash -vxc" DOCKER_IMAGE=ubuntu:latest MAKE="make -d" AWS_DEFAULT_REGION=eu-entral-1
       script:
-        - make -f MakeDocker.mk build-script/docker_start
-        - $DOCKER_SH "INSTALL_MAKE='apt update; apt install make;' INSTALL_GOAL=deb_install PYTHON=python3.7 build-script/docker_prep.sh"
+        - sh -vx ./build-script/docker_start.sh
+        - sh -vx ./build-script/before_script.sh
+        - $DOCKER_SH "PYTHON=python3.7 build-script/docker_prep.sh"
         - $DOCKER_SH "$MAKE behave doctest PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
     - stage: deploy
       before_deploy:
         # Set up git user name and tag this commit
         # - $DOCKER_SH git config --local user.name "YOUR GIT USER NAME"
         # - $DOCKER_SH git config --local user.email "YOUR GIT USER EMAIL"
-        - build-script/before_deploy.sh
+        - sh -vx build-script/before_deploy.sh
       deploy:
         provider: releases
         api_key:
