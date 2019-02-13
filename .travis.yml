@@ -1,6 +1,5 @@
 ---
 sudo: required
-
 language: python
 python:
   - 3.6
@@ -10,19 +9,39 @@ services:
 
 # Ubuntu doesn't work properly because the python3-gpgme is an old version (2.10) without key export!
 # we use this only to access shellcheck and so on
-env:
-  - SH="docker exec -t backup-test sh -vxc" SUDO="" DOCKER_IMAGE=alpine:latest INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE="apk update; apk add make;" PYTHON=python3.6 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
-  - SH="docker exec -t backup-test bash -vxc" SUDO="" DOCKER_IMAGE=ubuntu:latest INSTALL_MAKE="apt update; apt install make;" INSTALL_GOAL=deb_install PYTHON=python3.7 MAKE="make -d" AWS_DEFAULT_REGION=eu-entral-1
 
-before_install:
-  - docker run -d --name backup-test -e LC_ALL="en_US.UTF-8" -e LANG="en_US.UTF-8" -v $(pwd):/travis -w /travis $DOCKER_IMAGE tail -f /dev/null
-  - docker ps
+stages:
+  - test
+  - deploy
 
-# matrix:
-#   include:
-#     - python: 3.7
-#       distro: ubuntu1804
-#       sudo: true
+jobs:
+  include:
+    - stage: test
+      name: test-local-ubuntu
+      env: DOCKER_SH="docker exec -t backup-test sh -vxc" DOCKER_IMAGE=alpine:latest PYTHON=python3.6 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
+      script:
+        - make -f MakeDocker.mk build-script/docker_start
+        - $DOCKER_SH "INSTALL_GOAL=apk_install SHELLCHECK=/bin/true INSTALL_MAKE='apk update; apk add make;' build-script/docker_prep.sh"
+        - $DOCKER_SH "$MAKE lint pytest PYTHON=$PYTHON"
+    - name: test-functional-ubuntu
+      env: SH="docker exec -t backup-test bash -vxc" DOCKER_IMAGE=ubuntu:latest MAKE="make -d" AWS_DEFAULT_REGION=eu-entral-1
+      script:
+        - make -f MakeDocker.mk build-script/docker_start
+        - $DOCKER_SH "INSTALL_MAKE='apt update; apt install make;' INSTALL_GOAL=deb_install PYTHON=python3.7 build-script/docker_prep.sh"
+        - $DOCKER_SH "$MAKE behave doctest PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
+    - stage: deploy
+      before_deploy:
+        # Set up git user name and tag this commit
+        # - $DOCKER_SH git config --local user.name "YOUR GIT USER NAME"
+        # - $DOCKER_SH git config --local user.email "YOUR GIT USER EMAIL"
+        - build-script/before_deploy.sh
+      deploy:
+        provider: releases
+        api_key:
+          secure: "WmdoLzadtghtwsI03TrXMjaQVmWzmZRixa/7eCYXkuKfvf6lTK1ltTaHsnJUEoy/5eF9WceQj2BiYWfW3yp3g/WOsAc2vSxhQb9uhzZUiG1PQNeVlLeMdYhiOVeEZxfKtIV+Xt8Q/izlsFuM+MIdBA1AQ0FywSJSVYQ+dP8CNzMpF5PhIzet5Qm+EsH15xJAcoS4QxI6TM8AFbWjX94O1eGfr9u+kLK+uzeH5oCzJGNd+v5BqADtAmHqSMBw8iFCvNkjuYrei5sKl2uTSu36hY5tEOQueR91SVBABhMiezz7BG2sA6gQckDspB2Ya1drvd4UEPHIBLZq3ad6G+OCudK9ExM346p3Oj1LoTm90WZ3jVUXRTj6GKEix1vJaTNpwrTc4IqcZgdr1N946zzGGqI94u9OBAEhIiXh+Ibym+7ba4B0kCO3oZODDBYccmymc3gcxKp57cz5bajJLXU00LtX3tWVyTWfttBcVyxKnxTLhdVEjryeG4IZpJZ01pFtJjtoAwM9fTRWCXmxg+VDm66NhUJd/wvEicETDNnlvemL9RBXt8DlmP1jJmkd0V8I52VQkyTEylXHYpreBaa+5S0udsOuPrK5d+reap6ntH1Hab/VLMyWtItpTuSPpi+UYAWMH3m0FLZaBgefePL+YWHtMPRHEOsWJG8PJh52ZOY="
+        file: "dist/backup_cloud-0.1.tar.gz"
+        skip_cleanup: true
+
 
 branches:
   only:
@@ -30,34 +49,4 @@ branches:
     - tested
     - /devel.*/
 
-before_script:
-  - $SH "$INSTALL_MAKE"
-  - $SH "$MAKE $INSTALL_GOAL PYTHON=$PYTHON"
-  - $SH "python --version; echo ; python2 --version ; python3 --version"
-  - $SH "openssl aes-256-cbc -K $encrypted_c2402a3ad637_key -iv $encrypted_c2402a3ad637_iv -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d"
-  - $SH "echo $test_random_key > .anslk_random_testkey"
-
-script:
-  - $SH "make prep_test AWS_ACCOUNT_NAME=travis PYTHON=$PYTHON"
-  - if [ "$DOCKER_IMAGE" = "alpine:latest" ]; then $SH "$MAKE behave doctest PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"; fi
-  - if [ "$DOCKER_IMAGE" = "ubuntu:latest" ]; then $SH "$MAKE lint pytest PYTHON=$PYTHON"; fi
-  - $SH "rm aws_credentials_travis.yml"
-
-after_script:
-  - $SH "openssl aes-256-cbc -K $encrypted_a45cc096e026_key -iv $encrypted_a45cc096e026_iv -in deploy_key.enc -out deploy_key -d"
-  - $SH "chmod 400 deploy_key"
-  - $SH "./push_on_success.sh"
-  - $SH "rm deploy_key"
   
-before_deploy:
-  # Set up git user name and tag this commit
-  # - $SH git config --local user.name "YOUR GIT USER NAME"
-  # - $SH git config --local user.email "YOUR GIT USER EMAIL"
-  - $SH "python3 setup.py sdist" 
-  - $SH "git tag ${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}"
-deploy:
-  provider: releases
-  api_key:
-    secure: "WmdoLzadtghtwsI03TrXMjaQVmWzmZRixa/7eCYXkuKfvf6lTK1ltTaHsnJUEoy/5eF9WceQj2BiYWfW3yp3g/WOsAc2vSxhQb9uhzZUiG1PQNeVlLeMdYhiOVeEZxfKtIV+Xt8Q/izlsFuM+MIdBA1AQ0FywSJSVYQ+dP8CNzMpF5PhIzet5Qm+EsH15xJAcoS4QxI6TM8AFbWjX94O1eGfr9u+kLK+uzeH5oCzJGNd+v5BqADtAmHqSMBw8iFCvNkjuYrei5sKl2uTSu36hY5tEOQueR91SVBABhMiezz7BG2sA6gQckDspB2Ya1drvd4UEPHIBLZq3ad6G+OCudK9ExM346p3Oj1LoTm90WZ3jVUXRTj6GKEix1vJaTNpwrTc4IqcZgdr1N946zzGGqI94u9OBAEhIiXh+Ibym+7ba4B0kCO3oZODDBYccmymc3gcxKp57cz5bajJLXU00LtX3tWVyTWfttBcVyxKnxTLhdVEjryeG4IZpJZ01pFtJjtoAwM9fTRWCXmxg+VDm66NhUJd/wvEicETDNnlvemL9RBXt8DlmP1jJmkd0V8I52VQkyTEylXHYpreBaa+5S0udsOuPrK5d+reap6ntH1Hab/VLMyWtItpTuSPpi+UYAWMH3m0FLZaBgefePL+YWHtMPRHEOsWJG8PJh52ZOY="
-  file: "dist/backup_cloud-0.1.tar.gz"
-  skip_cleanup: true
