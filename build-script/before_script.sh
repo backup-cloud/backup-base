@@ -4,8 +4,9 @@
 # commands.  It expects to be run _inside_ the container (e.g. with
 # docker exec).
 
-# shellcheck disable=SC2154
-openssl aes-256-cbc -K "$encrypted_c2402a3ad637_key" -iv "$encrypted_c2402a3ad637_iv" -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d
+# DISABLE: this is needed for ansible setup but in the case of Travis we currently prepare the account before the build.
+# # shellcheck disable=SC2154
+# openssl aes-256-cbc -K "$encrypted_c2402a3ad637_key" -iv "$encrypted_c2402a3ad637_iv" -in aws_credentials_travis.yml.enc -out aws_credentials_travis.yml -d
 # shellcheck disable=SC2154
 openssl aes-256-cbc -K "$encrypted_c2402a3ad637_key" -iv "$encrypted_c2402a3ad637_iv" -in aws_credentials.env.enc -out aws_credentials.env -d
 # shellcheck disable=SC2154
