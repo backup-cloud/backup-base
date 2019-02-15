@@ -44,7 +44,9 @@ jobs:
           secure: "WmdoLzadtghtwsI03TrXMjaQVmWzmZRixa/7eCYXkuKfvf6lTK1ltTaHsnJUEoy/5eF9WceQj2BiYWfW3yp3g/WOsAc2vSxhQb9uhzZUiG1PQNeVlLeMdYhiOVeEZxfKtIV+Xt8Q/izlsFuM+MIdBA1AQ0FywSJSVYQ+dP8CNzMpF5PhIzet5Qm+EsH15xJAcoS4QxI6TM8AFbWjX94O1eGfr9u+kLK+uzeH5oCzJGNd+v5BqADtAmHqSMBw8iFCvNkjuYrei5sKl2uTSu36hY5tEOQueR91SVBABhMiezz7BG2sA6gQckDspB2Ya1drvd4UEPHIBLZq3ad6G+OCudK9ExM346p3Oj1LoTm90WZ3jVUXRTj6GKEix1vJaTNpwrTc4IqcZgdr1N946zzGGqI94u9OBAEhIiXh+Ibym+7ba4B0kCO3oZODDBYccmymc3gcxKp57cz5bajJLXU00LtX3tWVyTWfttBcVyxKnxTLhdVEjryeG4IZpJZ01pFtJjtoAwM9fTRWCXmxg+VDm66NhUJd/wvEicETDNnlvemL9RBXt8DlmP1jJmkd0V8I52VQkyTEylXHYpreBaa+5S0udsOuPrK5d+reap6ntH1Hab/VLMyWtItpTuSPpi+UYAWMH3m0FLZaBgefePL+YWHtMPRHEOsWJG8PJh52ZOY="
         file: "dist/backup_cloud-0.1.tar.gz"
         skip_cleanup: true
-
+        on:
+          all_branches: true
+          condition: $TRAVIS_BRANCH =~ ^tested$
 
 branches:
   only:
