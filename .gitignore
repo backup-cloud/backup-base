@@ -26,3 +26,4 @@ bin/backup_encrypt
 *.pyc
 dist
 MANIFEST
+deploy_key
