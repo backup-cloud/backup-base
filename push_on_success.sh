@@ -10,7 +10,7 @@
 git config user.name "GitHub Travis-CI User"
 git config user.email "engineering+travis@paddle.com"
 
-GIT_SSH_COMMAND="ssh -i deploy_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git remote add pushable git@github.com:PaddleHQ/aws-cloudflare-secgroup.git 
+GIT_SSH_COMMAND="ssh -i deploy_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git remote add pushable "git@github.com:$TRAVIS_REPO_SLUG"
 
 git remote -v show
 
