@@ -1,57 +1,57 @@
----
 sudo: required
 language: python
 python:
-  - 3.6
-
+- 3.6
 services:
-  - docker
-
+- docker
 stages:
-  - test
-  - deploy
-
+- test
+- deploy
 jobs:
   include:
-    - stage: test
-      # Ubuntu doesn't work properly because the python3-gpgme is an
-      # old version (2.10) without key export!  we use this only to
-      # access shellcheck and so on
-      name: test-local-ubuntu
-      env: DOCKER_SH="docker exec -t backup-test bash -vxc" DOCKER_IMAGE=ubuntu:latest PYTHON=python3.6 MAKE="make" AWS_DEFAULT_REGION=eu-central-1
-      script:
-        - sh -vx ./build-script/docker_start.sh
-        - sh -vx ./build-script/before_script.sh
-        - $DOCKER_SH "PYTHON=$PYTHON ./build-script/ubuntu_container_prep.sh"
-        - $DOCKER_SH "$MAKE lint pytest PYTHON=$PYTHON"
-    - name: test-functional-alpine
-      env: DOCKER_SH="docker exec -t backup-test sh -vxc" DOCKER_IMAGE=alpine:latest PYTHON=python3.6 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
-      script:
-        - sh -vx ./build-script/docker_start.sh
-        - sh -vx ./build-script/before_script.sh
-        - $DOCKER_SH "PYTHON=$PYTHON ./build-script/alpine_container_prep.sh"
-        - $DOCKER_SH "$MAKE behave PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION SHELLCHECK=/bin/true"
-        - $DOCKER_SH "source aws_credentials.env; export AWS_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; $MAKE doctest PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION SHELLCHECK=/bin/true"
-    - stage: deploy
-      script:
-        # - $DOCKER_SH git config --local user.name "YOUR GIT USER NAME"
-        # - $DOCKER_SH git config --local user.email "YOUR GIT USER EMAIL"
-        - sh -vx ./build-script/before_deploy.sh
-        - true
-      deploy:
-        provider: releases
-        api_key:
-          secure: "WmdoLzadtghtwsI03TrXMjaQVmWzmZRixa/7eCYXkuKfvf6lTK1ltTaHsnJUEoy/5eF9WceQj2BiYWfW3yp3g/WOsAc2vSxhQb9uhzZUiG1PQNeVlLeMdYhiOVeEZxfKtIV+Xt8Q/izlsFuM+MIdBA1AQ0FywSJSVYQ+dP8CNzMpF5PhIzet5Qm+EsH15xJAcoS4QxI6TM8AFbWjX94O1eGfr9u+kLK+uzeH5oCzJGNd+v5BqADtAmHqSMBw8iFCvNkjuYrei5sKl2uTSu36hY5tEOQueR91SVBABhMiezz7BG2sA6gQckDspB2Ya1drvd4UEPHIBLZq3ad6G+OCudK9ExM346p3Oj1LoTm90WZ3jVUXRTj6GKEix1vJaTNpwrTc4IqcZgdr1N946zzGGqI94u9OBAEhIiXh+Ibym+7ba4B0kCO3oZODDBYccmymc3gcxKp57cz5bajJLXU00LtX3tWVyTWfttBcVyxKnxTLhdVEjryeG4IZpJZ01pFtJjtoAwM9fTRWCXmxg+VDm66NhUJd/wvEicETDNnlvemL9RBXt8DlmP1jJmkd0V8I52VQkyTEylXHYpreBaa+5S0udsOuPrK5d+reap6ntH1Hab/VLMyWtItpTuSPpi+UYAWMH3m0FLZaBgefePL+YWHtMPRHEOsWJG8PJh52ZOY="
-        file: "dist/backup_cloud-0.1.tar.gz"
-        skip_cleanup: true
-        on:
-          all_branches: true
-          condition: $TRAVIS_BRANCH =~ ^tested$
-
+  - stage: test
+    name: test-local-ubuntu
+    env: DOCKER_SH="docker exec -t backup-test bash -vxc" DOCKER_IMAGE=ubuntu:latest
+      PYTHON=python3.6 MAKE="make" AWS_DEFAULT_REGION=eu-central-1
+    script:
+    - sh -vx ./build-script/docker_start.sh
+    - sh -vx ./build-script/before_script.sh
+    - $DOCKER_SH "PYTHON=$PYTHON ./build-script/ubuntu_container_prep.sh"
+    - $DOCKER_SH "$MAKE lint pytest PYTHON=$PYTHON"
+  - name: test-functional-alpine
+    env: DOCKER_SH="docker exec -t backup-test sh -vxc" DOCKER_IMAGE=alpine:latest
+      PYTHON=python3.6 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
+    script:
+    - sh -vx ./build-script/docker_start.sh
+    - sh -vx ./build-script/before_script.sh
+    - $DOCKER_SH "PYTHON=$PYTHON ./build-script/alpine_container_prep.sh"
+    - $DOCKER_SH "$MAKE behave PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+      SHELLCHECK=/bin/true"
+    - $DOCKER_SH "source aws_credentials.env; export AWS_REGION AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY; $MAKE doctest PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+      SHELLCHECK=/bin/true"
+  - stage: deploy
+    script:
+    - sh -vx ./build-script/before_deploy.sh
+    - true
+    deploy:
+      provider: releases
+      api_key:
+        secure: WmdoLzadtghtwsI03TrXMjaQVmWzmZRixa/7eCYXkuKfvf6lTK1ltTaHsnJUEoy/5eF9WceQj2BiYWfW3yp3g/WOsAc2vSxhQb9uhzZUiG1PQNeVlLeMdYhiOVeEZxfKtIV+Xt8Q/izlsFuM+MIdBA1AQ0FywSJSVYQ+dP8CNzMpF5PhIzet5Qm+EsH15xJAcoS4QxI6TM8AFbWjX94O1eGfr9u+kLK+uzeH5oCzJGNd+v5BqADtAmHqSMBw8iFCvNkjuYrei5sKl2uTSu36hY5tEOQueR91SVBABhMiezz7BG2sA6gQckDspB2Ya1drvd4UEPHIBLZq3ad6G+OCudK9ExM346p3Oj1LoTm90WZ3jVUXRTj6GKEix1vJaTNpwrTc4IqcZgdr1N946zzGGqI94u9OBAEhIiXh+Ibym+7ba4B0kCO3oZODDBYccmymc3gcxKp57cz5bajJLXU00LtX3tWVyTWfttBcVyxKnxTLhdVEjryeG4IZpJZ01pFtJjtoAwM9fTRWCXmxg+VDm66NhUJd/wvEicETDNnlvemL9RBXt8DlmP1jJmkd0V8I52VQkyTEylXHYpreBaa+5S0udsOuPrK5d+reap6ntH1Hab/VLMyWtItpTuSPpi+UYAWMH3m0FLZaBgefePL+YWHtMPRHEOsWJG8PJh52ZOY=
+      file: dist/backup_cloud-0.1.tar.gz
+      skip_cleanup: true
+      on:
+        all_branches: true
+        condition: "$TRAVIS_BRANCH =~ ^tested$"
 branches:
   only:
-    - /unreviewed.*/
-    - tested
-    - /devel.*/
-
-  
+  - "/unreviewed.*/"
+  - tested
+  - "/devel.*/"
+deploy:
+  provider: releases
+  api_key:
+    secure: YknAZQmnoKOL0dSqsXrbKGs6SBwJSmfsZebE5expmsM/ORV8UcJpt817hw8FyKVjXKR2B1ysK172vqzwLzKu6tdyko4xr/+LDhyII1BKmrXGg2eRiFdqhahEEfehfpX9sXWcww6tkRCwy1PYFcairoKbI2DrwtOGmWZkhLB3h/qvuMwHRlUF0ikC9MZ933GzLPlURWotIq5IgtetYUqwAz2UNBHLOucqsAvJi8ENgHZ1LXP48bLqLliQIzKJMRFn/cvt4be1Hv2uUqDgSQ3sIG9Llks3vrXa+vbYzPX9QzVAlyZrqGGi+bGRoOhAFdVn68sUTVBV0VObB7/svgA7vQk3qD1atHVARBxkHYGoahelYtGtUyirBqZ51TRAl9njOE6/XKGt8SqYiHF4aM1r1HQkzCZ1irWbi3T+xG495pQ0R4UHbCVpk1aciSEMgpfDUxFup8MnGLypfaso1kT+MpkxMJL0Lwq/AWCV+2X6Gn40JhNbm9rRTNxnoDQ7RFevxGjHz8YOXp3G8xuw7LbRsM67wKSadwqcqiLa3YFAXRReAW42Pf2JKP0yxLAd74IdBhn386u0DnEckD362akMXT/qrnieZP+tu8GtWXrqqCyvZyZ37sz/QYM7w4EWof5bS5SoTAnJZRlos4sXRHvAreipaqw0QZYi1zE3kiBw+ak=
+  file: dist/backup_cloud-0.1.tar.gz
+  on:
+    repo: michael-paddle/backup-base
