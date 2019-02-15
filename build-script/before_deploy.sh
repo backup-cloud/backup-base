@@ -6,6 +6,6 @@
 openssl aes-256-cbc -K "$encrypted_c2402a3ad637_key" -iv "$encrypted_c2402a3ad637_iv" -in deploy_key.enc -out deploy_key -d
 chmod 400 deploy_key
 sh -vx ./push_on_success.sh
-rm deploy_key
+rm -f deploy_key
 python3 setup.py sdist
 git tag "${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}"

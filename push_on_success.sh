@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 #
 # Based on https://github.com/Shippable/support/issues/1052
 #
@@ -14,7 +14,7 @@ GIT_SSH_COMMAND="ssh -i deploy_key -o UserKnownHostsFile=/dev/null -o StrictHost
 
 git remote -v show
 
-if [[ "$TRAVIS_BRANCH" =~ "devel" ]] && [ "$TRAVIS_PULL_REQUEST" == false ]; then
+if echo "$TRAVIS_BRANCH" | grep "devel" >/dev/null && [ "$TRAVIS_PULL_REQUEST" = false ]; then
   git checkout -B tested
   GIT_SSH_COMMAND="ssh -i deploy_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git push -u pushable tested
   exit 0
