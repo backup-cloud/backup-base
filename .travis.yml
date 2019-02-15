@@ -30,7 +30,7 @@ jobs:
         - sh -vx ./build-script/docker_start.sh
         - sh -vx ./build-script/before_script.sh
         - $DOCKER_SH "PYTHON=$PYTHON ./build-script/alpine_container_prep.sh"
-        - $DOCKER_SH "$MAKE behave doctest PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION SHELLCHECK=/bin/true"
+        - $DOCKER_SH "$MAKE behave PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION SHELLCHECK=/bin/true"
         - $DOCKER_SH "source aws_credentials.env; export AWS_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; $MAKE doctest PYTHON=$PYTHON AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION SHELLCHECK=/bin/true"
     - stage: deploy
       before_deploy:
