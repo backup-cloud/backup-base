@@ -2,6 +2,28 @@ This is a base layer for our automated backup which provides the
 simple service of backing up from S3 locations into encrypted files in
 other S3 locations.
 
+
+The backup configuration
+============================
+
+The backup configuration is primarily in SSM.  When the backup class
+is initiated then it gets an SSM path which it use to find the rest of
+the configuration.  Hardwired under this path are various parameters
+
+- <base-path>/s3_bucket - the bucket the backup system will use
+- <base-path>/s3_path - the base path in the bucket where the backup will be
+
+Under s3_path there is a hierarchy
+
+  /config - the configuration for the backup - currrently very limited  
+  /config/public-keys - storage location for public keys  
+  /backup - storage location for encrypted backups  
+
+The keys stored in the public-keys location 1
+
+Backups should be stored under the backup location.
+
+
 backup_context.BackupContext
 ============================
 

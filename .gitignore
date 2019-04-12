@@ -27,3 +27,4 @@ bin/backup_encrypt
 dist
 MANIFEST
 deploy_key
+deploy_key.bck
