@@ -59,7 +59,7 @@ def step_impl_3(context) -> None:
 
 @typechecked(always=True)
 @when(u"I request a backup of that file using the context")
-def step_impl_4(context):
+def step_impl_4(context) -> None:
     backup_context = context.backup_context
     src_bucket = context.store_bucket.name
     src_path = context.s3_src_file_path

@@ -8,15 +8,16 @@ encryption of backups.
       and I have a private public key pair
       and the public key from that key pair is stored in an s3 bucket
 
+  @wip
   Scenario: prepare for backup
-    given that I have a backup context configured
+    given that I have a backup context configured with matching users
      when I run a backup script from that context
      then my S3 URL should be configured
       and my encryption command should be configured
 
   @future
   Scenario: verify 
-  given that I have a backup context configured
+  given that I have a backup context configured with matching users
   when I request an encryption command
   then environment variables and a script should be set up
   and the script should encrypt my data

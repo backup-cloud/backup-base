@@ -13,13 +13,12 @@ upload and encrypted backup of our data to an S3 bucket.
     Scenario: store encrypted backup in S3
     given that I have configured my settings in SSM
      and that I have a file in S3 to backup
-     and that I have a backup context configured
+     and that I have a backup context configured with matching users
     when I request a backup of that file using the context
     then a backup object should be created in the S3 destination bucket
      and if I decrypt that file the content with the private key it should match the original
 
     @future
-    @wip
     Scenario: automatically store encrypted backup in S3 based on SSM settings
     given that I have a set of folders in S3 containing some objects
      and that I have a file in my configuration directory with a list of those s3 folders

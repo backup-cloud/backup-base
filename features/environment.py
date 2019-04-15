@@ -24,6 +24,6 @@ def after_step(context, step):
     if BEHAVE_DEBUG_ON_ERROR and step.status == "failed":
         # -- ENTER DEBUGGER: Zoom in on failure location.
         # NOTE: Use IPython debugger, same for pdb (basic python debugger).
-        import ipdb
+        import pdb
 
-        ipdb.post_mortem(step.exc_traceback)
+        pdb.post_mortem(step.exc_traceback)

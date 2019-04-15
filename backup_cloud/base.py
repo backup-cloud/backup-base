@@ -37,9 +37,7 @@ class BackupContext:
 
     """
 
-    # TODO - recipients should either come from S3 keys or from SSM
-
-    def __init__(self, ssm_path: str, recipients: List[str], bindir: str = None):
+    def __init__(self, ssm_path: str, recipients: List[str] = None, bindir: str = None):
         if bindir is None:
             bindir = os.getcwd() + "/bin"
         if not os.path.exists(bindir):
@@ -47,7 +45,11 @@ class BackupContext:
         self.bindir = bindir
         self.ssm_path = ssm_path
         self.ssm = boto3.client("ssm")
+
+        # recipients are specific recipents we are told to encrypt only to
         self.recipients = recipients
+        # by default we encrypt to all recipients we find in key files in our bucket - gathered here.
+        self.all_recipients: List[str] = []
 
         c = gpg.Context(armor=True)
         self.gpgdir = TemporaryDirectory()
@@ -84,28 +86,46 @@ class BackupContext:
     def get_gpg_keys(self, gpg_context):
         """recover gpg keys from config/public-keys folder in S3
 
-        we pick up all the keys from the folder and then import them
-        to the gpg context which makes them available for encrypting.
+        we pick up all the keys from the folder and then import them to the gpg
+        context which makes them available for encrypting.
+
+        N.B. it is the responsibility of those loading keys into the bucket to
+        ensure that a) the keys are trusted ones that belong to their owners and
+        b) they are correctly labelled for use as recipients.
+
         """
 
         bucket = self.s3_bucket()
-        key_path = self.s3_path() + "/config/public-keys/test-key.pub"
-        obj = bucket.Object(key_path)
-        try:
-            gpg_key = obj.get()["Body"].read()
-        except ClientError as e:
-            eprint("Failed to get public key: " + key_path)
-            raise e
+        folder_path = self.s3_path() + "/config/public-keys/"
 
-        assert len(gpg_key) > 64, (
-            "public key: "
-            + key_path
-            + " is corrupt - too short at "
-            + str(len(gpg_key))
-            + " characters"
-        )
+        for obj in bucket.objects.filter(Prefix=folder_path):
+            try:
+                gpg_key = obj.get()["Body"].read()
+            except ClientError as e:
+                eprint("Failed to get public key: s3://" + obj.bucket + "/" + obj.key)
+                raise e
 
-        gpg_context.key_import(gpg_key)
+            assert len(gpg_key) > 64, (
+                "public key:  s3://"
+                + obj.bucket
+                + "/"
+                + obj.key
+                + " is corrupt - too short at "
+                + str(len(gpg_key))
+                + " characters"
+            )
+
+            gpg_context.key_import(gpg_key)
+
+        for i in gpg_context.keylist():
+            uid = i.uids[0].uid
+            assert len(uid) > 3, "gpg key without reasonable uid found: " + repr(i)
+            self.all_recipients.append(uid)
+
+        if len(self.all_recipients) < 1:
+            raise Exception(
+                "No recipients found in keys - need to have at least one public key configured"
+            )
 
     def encrypt(self, plaintext, *args, **kwargs):
         """TODO: encrypt_stream - encrypt a stream into another stream
@@ -132,13 +152,26 @@ class BackupContext:
         which will run the encryption for you.
         """
 
+        recipients = self.recipients
+        if recipients is None:
+            recipients = self.all_recipients
+
+        if len(recipients) < 1:
+            raise Exception(
+                "No recipients found - need to have at least one public key configured"
+            )
+
+        rcpt_clause = (
+            '--recipient "' + '" --recipient "'.join([str(x) for x in recipients]) + '"'
+        )
+
         script = """\
 #!/bin/sh
 set -evx
 rm -f $1.gpg
-gpg --batch --homedir "{HOMEDIR}" --recipient "{KEYID}" --encrypt --trust-model always $1
+gpg --batch --homedir "{HOMEDIR}" {RCPTS} --encrypt --trust-model always $1
 """.format(
-            HOMEDIR=self.gpgdir.name, KEYID=self.recipients[0]
+            HOMEDIR=self.gpgdir.name, RCPTS=rcpt_clause
         )
 
         prog_path = self.bindir + "/backup_encrypt"
@@ -184,5 +217,13 @@ gpg --batch --homedir "{HOMEDIR}" --recipient "{KEYID}" --encrypt --trust-model 
         cp = subprocess.run(
             command, env=enc_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
-        cp.check_returncode()
+        if not cp.returncode == 0:
+            eprint(
+                "******* ENCRYPT PROCESS FAILED *********.\n\nStdout:\n"
+                + cp.stdout.decode("utf-8", "backslashreplace")
+                + "\n\nStderr:\n"
+                + cp.stderr.decode("utf-8", "backslashreplace")
+                + "\n"
+            )
+            cp.check_returncode()
         return cp

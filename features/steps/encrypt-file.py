@@ -62,3 +62,23 @@ def step_impl_4(context):
     c = context.gpg_context
     plaintext, result, verify_result = c.decrypt(context.encrypted_file_contents)
     assert_that(plaintext, equal_to(context.test_data))
+
+
+@then(u"I should be able to decrypt that file with each key provided")
+def step_impl_5(context):
+    for private_key in [x[2] for x in context.key_pair_list]:
+        c = gpg.Context(armor=True)
+        gpgdir = TemporaryDirectory()
+        c.home_dir = gpgdir.name
+
+        assert_that(
+            len(private_key), greater_than(64), "private key is too short to be real"
+        )
+        assert_that(
+            len(context.encrypted_file_contents),
+            greater_than(64),
+            "encrypted file is too short to be real ",
+        )
+        c.key_import(private_key)
+        plaintext, result, verify_result = c.decrypt(context.encrypted_file_contents)
+        assert_that(plaintext, equal_to(context.test_data))

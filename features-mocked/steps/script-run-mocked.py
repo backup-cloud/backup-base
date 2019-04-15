@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from hamcrest import assert_that, equal_to, contains
 from backup_cloud import BackupContext
 
@@ -17,6 +17,9 @@ checks on the arguments given to the script.
 def step_impl_run(context: Context) -> None:
     bc: BackupContext = context.backup_context
     with patch("subprocess.run") as mockrun:
+        success_process = MagicMock
+        success_process.returncode = 0
+        mockrun.side_effect = success_process
         context.result = bc.run(["fakeprog"])
         assert_that(mockrun.call_args[0], contains(["fakeprog"]))
         context.script_env = mockrun.call_args[1]["env"]
