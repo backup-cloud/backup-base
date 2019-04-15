@@ -48,7 +48,8 @@ class BackupContext:
 
         # recipients are specific recipents we are told to encrypt only to
         self.recipients = recipients
-        # by default we encrypt to all recipients we find in key files in our bucket - gathered here.
+        # by default we encrypt to all recipients we find in key files
+        # in our bucket - gathered here.
         self.all_recipients: List[str] = []
 
         c = gpg.Context(armor=True)
@@ -99,21 +100,30 @@ class BackupContext:
         folder_path = self.s3_path() + "/config/public-keys/"
 
         for obj in bucket.objects.filter(Prefix=folder_path):
+            if obj.key == folder_path:
+                continue
             try:
                 gpg_key = obj.get()["Body"].read()
-            except ClientError as e:
-                eprint("Failed to get public key: s3://" + obj.bucket + "/" + obj.key)
-                raise e
+            except ClientError:
+                eprint(
+                    "Failed to get public key: s3://"
+                    + obj.bucket
+                    + "/"
+                    + obj.key
+                    + "\nIgnoring file and continuing.\n"
+                )
+                continue
 
-            assert len(gpg_key) > 64, (
-                "public key:  s3://"
-                + obj.bucket
-                + "/"
-                + obj.key
-                + " is corrupt - too short at "
-                + str(len(gpg_key))
-                + " characters"
-            )
+            if len(gpg_key) < 64:
+                eprint(
+                    "public key:  s3://"
+                    + obj.bucket_name
+                    + "/"
+                    + obj.key
+                    + " is corrupt - too short at "
+                    + str(len(gpg_key))
+                    + " characters"
+                )
 
             gpg_context.key_import(gpg_key)
 

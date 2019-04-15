@@ -28,3 +28,4 @@ dist
 MANIFEST
 deploy_key
 deploy_key.bck
+encrypted_build_files.tjz
