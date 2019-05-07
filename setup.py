@@ -19,4 +19,8 @@ setuptools.setup(
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Operating System :: OS Independent",
     ],
+    # python gpgme (the official library distributed by the GPG team)
+    # has to be installed by the operating system so we don't include
+    # it here so that PIP does not attempt to install it!
+    install_requires=["boto3"],
 )
