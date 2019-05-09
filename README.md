@@ -2,6 +2,35 @@ This is a base layer for our automated backup which provides the
 simple service of backing up from S3 locations into encrypted files in
 other S3 locations.
 
+Install
+=======
+
+To get this to work you must install the operating system requirements
+which are not automatically installed by pip.  See below
+
+Until release 1.0 installs will have to be done through direct pip
+installs from GitHub
+
+    pip install https://travis-ci.org/michael-paddle/backup-base
+
+or
+
+    pip install https://github.com/michael-paddle/backup-base/archive/20190507151318-f1bc9fc.zip
+
+to install a specific release
+
+OS specific dependencies
+------------------------
+In order for this to work the appropriate libraries have to be installed on the system.
+
+For Alpine Linux:
+
+    apk add gnupg
+
+For Debian family / Ubuntu systems
+
+    apt-get inatall python3-gpg
+
 
 The backup configuration
 ============================
@@ -81,3 +110,5 @@ automated testing.  You can simply take the latest one from
 
 Builds are run in travis:
 [![Build Status](https://travis-ci.org/michael-paddle/backup-base.svg?branch=tested)](https://travis-ci.org/michael-paddle/backup-base)
+
+

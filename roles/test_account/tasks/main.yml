@@ -1,0 +1,78 @@
+---
+#
+#  This adds IAM requirements to allow the deployment script to be
+#  run.  Since it creates and modifies IAM users roles and policies it
+#  needs to be run with full IAM account manager privilages.  
+#
+#  This script was based on the lambda and lambda policy testcases out
+#  of Ansible's integration tests.  As such it is licensed under the
+#  GPLv3 with copyright belonging to various including:
+#
+#  * Michael De La Rue
+#  * William Thames
+#  * The Ansible Project
+#
+#  Further work on this done as paid work by Michael De La Rue for paddle.com.
+#
+
+    - name: set up AWS credentials
+      block:
+        - set_fact:
+            admin_aws_connection_info: &admin_aws_connection_info
+              aws_region: '{{ aws_region }}'
+              aws_access_key: '{{ admin_aws_access_key }}'
+              aws_secret_key: '{{ admin_aws_secret_key }}'
+              security_token: '{{ admin_security_token }}'
+
+    - name: create IAM definitions
+      block:
+        - iam_user:
+             name: "{{ backup_test_user }}"
+             # FullAccess should be eliminated but AWS doesnt have any
+             # standard limited policies that match so we will need to
+             # create our own policies for that.  Do it later.
+             managed_policy:
+               - arn:aws:iam::aws:policy/AWSLambdaFullAccess
+               - arn:aws:iam::aws:policy/IAMFullAccess
+               - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+               - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+             state: present
+             <<: *admin_aws_connection_info
+
+    - name: set up access keys
+      block:
+        - shell: |
+            for i in $(aws iam list-access-keys  --user-name={{ backup_test_user }} \
+               | grep AccessKeyId | sed -e 's/",//' -e 's/.*"//' ) 
+            do
+              aws iam delete-access-key  --user-name={{backup_test_user}} --access-key-id=$i
+            done
+          environment:
+              AWS_ACCESS_KEY_ID: '{{admin_aws_access_key}}'
+              AWS_SECRET_ACCESS_KEY: '{{admin_aws_secret_key}}'
+    #              AWS_SESSION_TOKEN: '{{security_token}}'
+              AWS_DEFAULT_REGION: '{{aws_region}}'
+
+        - command: "aws iam create-access-key --user-name={{backup_test_user}}"
+          environment:
+              AWS_ACCESS_KEY_ID: '{{admin_aws_access_key}}'
+              AWS_SECRET_ACCESS_KEY: '{{admin_aws_secret_key}}'
+    #              AWS_SESSION_TOKEN: '{{security_token}}'
+              AWS_DEFAULT_REGION: '{{aws_region}}'
+          register: cred_create_result
+
+        - copy:
+            content: |
+              ---
+              aws_region: {{ aws_region }}
+              aws_access_key: {{(cred_create_result.stdout | from_json).AccessKey.AccessKeyId}}
+              aws_secret_key: {{(cred_create_result.stdout | from_json).AccessKey.SecretAccessKey}}
+              security_token:
+            dest: /tmp/id_output
+
+        - fetch:
+            src: /tmp/id_output
+            dest: "aws_credentials_{{aws_account_name}}.yml"
+            flat: yes
+
+            

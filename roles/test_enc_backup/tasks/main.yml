@@ -1,0 +1,91 @@
+---
+#
+#  This is based on the lambda and lambda policy testcases out of Ansible's integration tests
+#
+#  As such it is licensed under the GPLv3 with copyright belonging to various including:
+#
+#  * Michael De La Rue
+#  * William Thames
+#  * The Ansible Project
+#
+#  Further work on this done as paid work by Michael De La Rue for paddle.com.
+#
+
+  tasks:
+    - tags:
+        - always
+      block:
+        - name: set up AWS credentials and test key
+          set_fact: 
+            aws_connection_info: &aws_connection_info
+              aws_region: '{{ aws_region }}'
+              aws_access_key: '{{ aws_access_key }}'
+              aws_secret_key: '{{ aws_secret_key }}'
+              security_token: '{{ security_token }}'
+
+        - name: verify some variables are properly defined
+          assert:
+            that: "test_key | length > 3"
+
+    - tags:
+        - given that I have configured a base path in SSM
+      set_fact: 
+          ssm_base_path: "test/system-backup/backup-test-{{test_key}}"
+
+
+    - tags:
+        - given I have an S3 bucket for backup testing
+      block:
+
+         # the following is the first AWS task which is run with the new
+         # keys we got so this can easily fail if the keys haven't been
+         # distributed correctly in IAM.  For this reason we include a
+         # retry which should give AWS time to complete distribution.
+          - name: create the s3 bucket
+            s3_bucket:
+              name: "test-backup-{{test_key}}"
+              state: present
+              <<: *aws_connection_info
+            retries: 3  
+            delay: 5
+            register: result
+            until: result.name is defined and result.name == "test-backup-" + test_key
+
+          # what follows sets up the credentials to access the S3
+          # bucket.  For now it's logical to put it as part of s3
+          # bucket creation though that will change later.
+
+          - name: create temporary file
+            tempfile:
+              state: file
+              suffix: temp
+            register: cred_temp
+
+          - copy:
+              content: |
+                AWS_REGION={{ aws_region }}
+                AWS_ACCESS_KEY_ID={{aws_access_key}}
+                AWS_SECRET_ACCESS_KEY={{aws_secret_key}}
+                # security_token:
+              dest: "{{cred_temp.path}}"
+
+          - fetch:
+              src: "{{cred_temp.path}}"
+              dest: "aws_credentials.env"
+              flat: yes
+
+          - name: create temporary file
+            tempfile:
+              state: file
+              suffix: temp
+            register: conf_temp
+
+          - copy:
+              content: |
+                S3_TEST_BUCKET=test-backup-{{test_key}}
+              dest: "{{conf_temp.path}}"
+
+          - fetch:
+              src: "{{conf_temp.path}}"
+              dest: "test-config.env"
+              flat: yes
