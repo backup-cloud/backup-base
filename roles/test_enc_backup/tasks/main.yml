@@ -88,3 +88,8 @@
               src: "{{conf_temp.path}}"
               dest: "test-config.env"
               flat: yes
+
+          - fetch:
+              src: "{{cred_temp.path}}"
+              dest: "encrypted_build_files/aws_credentials.env"
+              flat: yes
