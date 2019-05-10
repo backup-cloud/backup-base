@@ -112,3 +112,12 @@ Builds are run in travis:
 [![Build Status](https://travis-ci.org/michael-paddle/backup-base.svg?branch=tested)](https://travis-ci.org/michael-paddle/backup-base)
 
 
+Travis Encrypted Files
+======================
+
+For the travis build system we need to pass credentials in an encrypted form.
+
+- *aws_credentials.demo.env* - credentials for doctest / demo environment
+- *aws_credentials.env* - test user credentials
+- *aws_credentials_travis.yml* - 
+- *deploy_key* - git key to allow pushes

@@ -59,10 +59,15 @@ deb_packages_install:
 	$(PYTHON_REQS)
 
 
-prepare: .prepare_complete
+prepare: encrypted_build_files.tjz.enc
 
-.prepare_complete: prepare-account prep_test
-	touch .prepare_complete
+ENC_DIR=encrypted_build_files
+ENC_FILENAMES=aws_credentials.env aws_credentials_travis.yml deploy_key
+ENC_FILES := $(addprefix $(ENC_DIR)/,$(ENC_FILENAMES))
+
+encrypted_build_files.tjz.enc: prepare-account prep_test $(ENC_FILES)
+	tar cvvjf --strip-components=1 $@ $(ENC_FILES)
+	travis encrypt-file --org encrypted_build_files.tjz
 
 prepare-account: prepare-account.yml
 	ansible-playbook -vvv prepare-account.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
@@ -85,4 +90,3 @@ testfix:
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
 .PHONY: all test behave checkvars pytest doctest init deb_install apk_install prepare prep_test prepare_account wip build lint testfix fix clean
-

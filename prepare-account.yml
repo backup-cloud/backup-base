@@ -9,9 +9,9 @@
   vars:
     ansible_connection: local
     backup_test_user: "backup_tester"
+    travis_backup_test_user: "travis_backup_tester"
     aws_account_name: michael
   vars_files:
     - "aws_credentials_{{aws_account_name}}_iam_admin.yml"
   roles:
     - test_account
-

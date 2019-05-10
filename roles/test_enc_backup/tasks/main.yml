@@ -11,12 +11,11 @@
 #  Further work on this done as paid work by Michael De La Rue for paddle.com.
 #
 
-  tasks:
     - tags:
         - always
       block:
         - name: set up AWS credentials and test key
-          set_fact: 
+          set_fact:
             aws_connection_info: &aws_connection_info
               aws_region: '{{ aws_region }}'
               aws_access_key: '{{ aws_access_key }}'
@@ -29,7 +28,7 @@
 
     - tags:
         - given that I have configured a base path in SSM
-      set_fact: 
+      set_fact:
           ssm_base_path: "test/system-backup/backup-test-{{test_key}}"
 
 
@@ -46,7 +45,7 @@
               name: "test-backup-{{test_key}}"
               state: present
               <<: *aws_connection_info
-            retries: 3  
+            retries: 3
             delay: 5
             register: result
             until: result.name is defined and result.name == "test-backup-" + test_key

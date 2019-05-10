@@ -12,4 +12,3 @@ openssl aes-256-cbc -K "$encrypted_c2402a3ad637_key" -iv "$encrypted_c2402a3ad63
 tar xjvf encrypted_build_files.tjz 
 # shellcheck disable=SC2154
 echo "$test_random_key" > .anslk_random_testkey
-

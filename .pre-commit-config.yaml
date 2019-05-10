@@ -9,6 +9,10 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v1.2.3
     hooks:
+    - id: check-added-large-files
+    - id: check-json
+    - id: detect-private-key
+    - id: end-of-file-fixer
     - id: flake8
       exclude: '^features[-a-z0-9]*/steps' 
       args:
@@ -20,6 +24,7 @@ repos:
         - --ignore=W503,E402,E501,F811
         - --max-line-length=131
         - --builtins=given,when,then
+    - id: forbid-new-submodules
     - id: check-yaml
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: 'master'  # Use the sha / tag you want to point at

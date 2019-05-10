@@ -6,4 +6,3 @@ PyHamcrest
 yamllint
 python-dotenv
 boto3
-
