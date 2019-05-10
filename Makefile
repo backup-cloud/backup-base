@@ -62,12 +62,14 @@ deb_packages_install:
 prepare: encrypted_build_files.tjz.enc
 
 ENC_DIR=encrypted_build_files
-ENC_FILENAMES=aws_credentials.env aws_credentials_travis.yml deploy_key
+ENC_FILENAMES=aws_credentials.demo.env aws_credentials.env aws_credentials_travis.yml deploy_key
 ENC_FILES := $(addprefix $(ENC_DIR)/,$(ENC_FILENAMES))
 
-encrypted_build_files.tjz.enc: prepare-account prep_test $(ENC_FILES)
-	tar cvvjf --strip-components=1 $@ $(ENC_FILES)
-	travis encrypt-file --org encrypted_build_files.tjz
+encrypted_build_files.tjz: prepare-account prep_test $(ENC_FILES)
+	tar cvvjf $@ -C $(ENC_DIR) $(ENC_FILENAMES)
+
+encrypted_build_files.tjz.enc: encrypted_build_files.tjz
+	travis encrypt-file --org $<
 
 prepare-account: prepare-account.yml
 	ansible-playbook -vvv prepare-account.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
