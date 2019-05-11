@@ -12,23 +12,6 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def set_string_par(ssm, path: str, value: str) -> None:
-    ssm_paramdef = dict(Name=path, Value=value, Type="String", Overwrite=True)
-    eprint("putting: " + value + "into ssm param: " + path)
-    ssm.put_parameter(**ssm_paramdef)
-
-
-def ensure_s3_paths_in_ssm(ssm_path: str, s3_bucket: str, s3_path: str) -> None:
-    """utility function used to configure ssm parameters for test runs
-
-    s3_bucket: the bucket used for backup
-    s3_path: base path under which backup folders will be
-    """
-    ssm = boto3.client("ssm")
-    set_string_par(ssm, ssm_path + "/s3_bucket", s3_bucket)
-    set_string_par(ssm, ssm_path + "/s3_path", s3_path)
-
-
 class BackupContext:
     """provide a context which will allow us to easily run backups and encrypt them
     ssm_path: path in SSM to find configuration parameters

@@ -1,6 +1,4 @@
-from backup_cloud import BackupContext
-from backup_cloud.base import ensure_s3_paths_in_ssm
-import os
+from backup_cloud.test_support import setup_test_backup_context
 import sys
 from typing import Any
 
@@ -15,28 +13,24 @@ def eprint(*args, **kwargs) -> None:
 
 @given(u"that I have a backup context configured with matching users")
 def step_impl(context) -> None:
-    bname = context.s3_test_bucket = os.environ["S3_TEST_BUCKET"]
-    s3path = context.s3_test_path
-    context.s3_backup_target = context.s3_test_path + "/backup"
     context.ssm_path = "/testing/backup_context/" + context.random_test_prefix
 
-    ensure_s3_paths_in_ssm(context.ssm_path, bname, s3path)
-
-    bc = BackupContext(ssm_path=context.ssm_path, recipients=context.gpg_userlist)
-    context.backup_context = bc
+    bc = context.backup_context = setup_test_backup_context(
+        ssm_path=context.ssm_path,
+        s3_path=context.s3_test_path,
+        recipients=context.gpg_userlist,
+    )
+    context.s3_backup_target = bc.s3_path() + "/backup"
 
 
 @when(u"I configure a backup context")
 def step_impl_0(context) -> None:
-    bname = context.s3_test_bucket = os.environ["S3_TEST_BUCKET"]
-    s3path = context.s3_test_path
-    context.s3_backup_target = context.s3_test_path + "/backup"
     context.ssm_path = "/testing/backup_context/" + context.random_test_prefix
 
-    ensure_s3_paths_in_ssm(context.ssm_path, bname, s3path)
-
-    bc = BackupContext(ssm_path=context.ssm_path)
-    context.backup_context = bc
+    bc = context.backup_context = setup_test_backup_context(
+        ssm_path=context.ssm_path, s3_path=context.s3_test_path
+    )
+    context.s3_backup_target = bc.s3_path() + "/backup"
 
 
 @when(u"I request an encryption shell script")

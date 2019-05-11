@@ -3,6 +3,7 @@ import gpg
 from tempfile import TemporaryDirectory
 import random
 import string
+from backup_cloud.test_support import make_new_keypair
 from hamcrest import assert_that, greater_than
 from typeguard import typechecked  # type: ignore
 from botocore.exceptions import ClientError
@@ -15,34 +16,6 @@ then: Any
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
-
-
-def make_new_keypair(gpg_context: gpg.Context, userid: str = None):
-    """create a new gpg keypair returning userid, public and private key
-
-    utilitiy function to create a new keypair.  In the case no userid
-    is provided we will create a (partly) random one.
-    """
-    if not userid:
-        userid = "backup-" + "".join(
-            [random.choice(string.ascii_letters + string.digits) for n in range(10)]
-        )
-
-    # ubuntu bionic doesn't ahve key_export_minimial() so we fallback
-    # in real life we can assume that the users would export using
-    # some graphical tool.
-
-    gpg_context.create_key(
-        userid, algorithm="rsa3072", expires_in=31536000, encrypt=True
-    )
-    try:
-        public_key = gpg_context.key_export_minimal(pattern=userid)
-    except AttributeError:
-        public_key = gpg_context.key_export(pattern=userid)
-
-    private_key = gpg_context.key_export_secret(pattern=userid)
-
-    return userid, public_key, private_key
 
 
 @typechecked(always=True)
