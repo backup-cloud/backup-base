@@ -1,11 +1,12 @@
 import subprocess
+from subprocess import CompletedProcess
 import boto3  # type: ignore
 import os
 import sys
 import gpg  # type: ignore
 from tempfile import TemporaryDirectory
 from botocore.exceptions import ClientError  # type: ignore
-from typing import Dict, List
+from typing import Dict, List, Generator
 
 
 def eprint(*args, **kwargs):
@@ -47,6 +48,8 @@ class BackupContext:
         self.gpg_context = c
 
     def s3_path(self) -> str:
+        """return the base path in S3 where we should work - read from SSM
+        """
         ssm_path: str = self.ssm_path
         ssm_paramdef = dict(Name=ssm_path + "/s3_path")
         try:
@@ -56,7 +59,10 @@ class BackupContext:
             raise e
         return s3_path
 
-    def s3_bucket(self) -> str:
+    # here we can't easily and safely do type annotations due to
+    # Boto3's dynamic code.  Potentially see the
+    # boto3-type-annotations module however.
+    def s3_bucket(self):
         ssm_path = self.ssm_path
         ssm_paramdef: Dict[str, str] = dict(Name=ssm_path + "/s3_bucket")
         try:
@@ -77,18 +83,7 @@ class BackupContext:
             target = self.s3_path() + "/backup"
         return target
 
-    def get_gpg_keys(self, gpg_context):
-        """recover gpg keys from config/public-keys folder in S3
-
-        we pick up all the keys from the folder and then import them to the gpg
-        context which makes them available for encrypting.
-
-        N.B. it is the responsibility of those loading keys into the bucket to
-        ensure that a) the keys are trusted ones that belong to their owners and
-        b) they are correctly labelled for use as recipients.
-
-        """
-
+    def download_gpg_keys(self) -> Generator[bytes, None, None]:
         bucket = self.s3_bucket()
         folder_path = self.s3_path() + "/config/public-keys/"
 
@@ -118,6 +113,21 @@ class BackupContext:
                     + " characters"
                 )
 
+            yield (gpg_key)
+
+    def get_gpg_keys(self, gpg_context) -> None:
+        """recover gpg keys from config/public-keys folder in S3
+
+        we pick up all the keys from the folder and then import them to the gpg
+        context which makes them available for encrypting.
+
+        N.B. it is the responsibility of those loading keys into the bucket to
+        ensure that a) the keys are trusted ones that belong to their owners and
+        b) they are correctly labelled for use as recipients.
+
+        """
+
+        for gpg_key in self.download_gpg_keys():
             gpg_context.key_import(gpg_key)
 
         for i in gpg_context.keylist():
@@ -147,7 +157,7 @@ class BackupContext:
 
         return c.encrypt(plaintext, *args, **options)
 
-    def setup_encrypt_command(self):
+    def setup_encrypt_command(self) -> None:
         """prepare a command that can be used in scripts for encrypting data
 
         this will be done for you automatically if you use the
@@ -182,7 +192,7 @@ gpg --batch --homedir "{HOMEDIR}" {RCPTS} --encrypt --trust-model always $1
             script_file.write(script)
         subprocess.call(["chmod", "a+x", prog_path])
 
-    def run(self, command: List[str]):
+    def run(self, command: List[str]) -> CompletedProcess:
         """run a command with the appropriate encryption commands ready to use
 
         command: list of command arguments as given to subprocess.run()
