@@ -20,7 +20,12 @@ class BackupContext:
 
     """
 
-    def __init__(self, ssm_path: str, recipients: List[str] = None, bindir: str = None):
+    def __init__(
+        self,
+        ssm_path: str = "/backup_cloud/base_defs",
+        recipients: List[str] = None,
+        bindir: str = None,
+    ):
         if bindir is None:
             bindir = os.getcwd() + "/bin"
         if not os.path.exists(bindir):
