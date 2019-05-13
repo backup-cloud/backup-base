@@ -70,7 +70,12 @@ class BackupContext:
         return s3.Bucket(s3_bucket_name)
 
     def s3_target_url(self):
-        return self.s3_path() + "/backup"
+        s3path = self.s3_path()
+        if s3path.endswith("/"):
+            target = self.s3_path() + "backup"
+        else:
+            target = self.s3_path() + "/backup"
+        return target
 
     def get_gpg_keys(self, gpg_context):
         """recover gpg keys from config/public-keys folder in S3
