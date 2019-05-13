@@ -23,6 +23,18 @@ def step_impl(context) -> None:
     context.s3_backup_target = bc.s3_path() + "/backup"
 
 
+@given(u"that I have a backup context configured with matching users with incorrect s3_path")
+def step_impl(context) -> None:
+    context.ssm_path = "/testing/backup_context/" + context.random_test_prefix
+
+    bc = context.backup_context = setup_test_backup_context(
+        ssm_path=context.ssm_path,
+        s3_path='/' + context.s3_test_path,
+        recipients=context.gpg_userlist,
+    )
+    context.s3_backup_target = bc.s3_path() + "/backup"
+
+
 @when(u"I configure a backup context")
 def step_impl_0(context) -> None:
     context.ssm_path = "/testing/backup_context/" + context.random_test_prefix

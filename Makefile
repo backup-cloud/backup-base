@@ -69,7 +69,7 @@ encrypted_build_files.tjz: prepare-account prep_test $(ENC_FILES)
 	tar cvvjf $@ -C $(ENC_DIR) $(ENC_FILENAMES)
 
 encrypted_build_files.tjz.enc: encrypted_build_files.tjz
-	travis encrypt-file --no-interactive --org $<
+	travis encrypt-file --force --no-interactive --org $<
 
 prepare-account: prepare-account.yml
 	ansible-playbook -vvv prepare-account.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
