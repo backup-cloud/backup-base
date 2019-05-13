@@ -17,6 +17,14 @@ upload and encrypted backup of our data to an S3 bucket.
     when I request a backup of that file using the context
     then a backup object should be created in the S3 destination bucket
      and if I decrypt that file the content with the private key it should match the original
+    
+    Scenario: store encrypted backup in S3 with incorrect s3_path
+    given that I have configured my settings in SSM
+     and that I have a file in S3 to backup
+     and that I have a backup context configured with matching users with incorrect s3_path
+    when I request a backup of that file using the context
+    then a backup object should be created in the S3 destination bucket
+     and if I decrypt that file the content with the private key it should match the original
 
     @future
     Scenario: automatically store encrypted backup in S3 based on SSM settings

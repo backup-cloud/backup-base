@@ -54,6 +54,8 @@ class BackupContext:
         ssm_paramdef = dict(Name=ssm_path + "/s3_path")
         try:
             s3_path = self.ssm.get_parameter(**ssm_paramdef)["Parameter"]["Value"]
+            if s3_path.startswith("/"):
+                s3_path = s3_path[1:]
         except ClientError as e:
             eprint("Failed to get parameter: " + ssm_paramdef["Name"])
             raise e
@@ -77,8 +79,8 @@ class BackupContext:
 
     def s3_target_url(self) -> str:
         s3path = self.s3_path()
-        if s3path.endswith("/"):
-            full_path = s3path + "backup"
+        if s3path.endswith("/") or not s3path:
+            target = self.s3_path() + "backup"
         else:
             full_path = s3path + "/backup"
         return full_path
@@ -93,8 +95,11 @@ class BackupContext:
 
     def download_gpg_keys(self) -> Generator[bytes, None, None]:
         bucket = self.s3_bucket()
-        folder_path = self._s3_key_url()
 
+        if self.s3_path().endswith("/") or not self.s3_path():
+            folder_path = self.s3_path() + "config/public-keys/"
+        else:
+            folder_path = self.s3_path() + "/config/public-keys/"
         for obj in bucket.objects.filter(Prefix=folder_path):
             if obj.key == folder_path:
                 continue

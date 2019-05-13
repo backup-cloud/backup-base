@@ -51,3 +51,4 @@ branches:
   - "/unreviewed.*/"
   - tested
   - "/devel.*/"
+  - "/trial.*/"
