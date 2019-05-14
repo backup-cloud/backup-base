@@ -75,17 +75,25 @@ class BackupContext:
         s3 = boto3.resource("s3")
         return s3.Bucket(s3_bucket_name)
 
-    def s3_target_url(self):
+    def s3_target_url(self) -> str:
         s3path = self.s3_path()
         if s3path.endswith("/"):
-            target = self.s3_path() + "backup"
+            full_path = s3path + "backup"
         else:
-            target = self.s3_path() + "/backup"
-        return target
+            full_path = s3path + "/backup"
+        return full_path
+
+    def _s3_key_url(self) -> str:
+        s3path = self.s3_path()
+        if s3path.endswith("/"):
+            full_path = s3path + "config/public-keys/"
+        else:
+            full_path = s3path + "/config/public-keys/"
+        return full_path
 
     def download_gpg_keys(self) -> Generator[bytes, None, None]:
         bucket = self.s3_bucket()
-        folder_path = self.s3_path() + "/config/public-keys/"
+        folder_path = self._s3_key_url()
 
         for obj in bucket.objects.filter(Prefix=folder_path):
             if obj.key == folder_path:

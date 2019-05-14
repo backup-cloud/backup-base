@@ -14,7 +14,7 @@ def test_should_handle_paths_with_double_slashes_so_we_end_up_with_one_slash():
                 assert target == "/unit/test/fake/s3/path/with/slash/backup"
                 with patch.object(c, "s3_bucket") as mockbucket:
                     list(c.download_gpg_keys())
-                    assert mockbucket().objects.filter.assert_called_with(
+                    mockbucket().objects.filter.assert_called_with(
                         Prefix="/unit/test/fake/s3/path/with/slash/config/public-keys/"
                     )
 
@@ -31,6 +31,6 @@ def test_should_handle_paths_with_single_slashes_so_we_end_up_with_one_slash():
                 assert target == "/unit/test/fake/s3/path/without/slash/backup"
                 with patch.object(c, "s3_bucket") as mockbucket:
                     list(c.download_gpg_keys())
-                    assert mockbucket().objects.filter.assert_called_with(
-                        Prefix="/unit/test/fake/s3/path/with/slash/config/public-keys/"
+                    mockbucket().objects.filter.assert_called_with(
+                        Prefix="/unit/test/fake/s3/path/without/slash/config/public-keys/"
                     )
