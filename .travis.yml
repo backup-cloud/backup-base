@@ -41,7 +41,7 @@ jobs:
       body: automated release created by travis - test in your usage scenario before deploying
       api_key:
         secure: BTpOxtOvWnuousg8z7PkvBWSfvdCBHuHH8mZDlln2LCxDNiuUSYmwArO4rw3k8w3+P/uehn0DtjILuXc5NMIgzE6nETtChDTLvthvmoT4ESQuW0g5PIRSlAfUt/P5YFqMN8P692D6qBipjD9LLAKkz8DRGJth4eClT4a+FbginAFalwqqOp2aUbAcYvf32fFKKuO7tASrD1N7UxY6LxKX/7IWSzxKGnNOzr/W6J0vaMpmVWzH8hxTiDwBatBU5PGUnwWz5DFmxvgbjvDrLh0sQHt5FL8RUNdMr/fG20nHStoBMfWpw7UGNUaCUz7rzvOWWDE775XCh4AL2+wXBBvWH41S47Eli5Og9dCtns4b11nwgOTGuo36/SO/ffrtM2Va/SScUP3pQRvBZyFw6JseFd3wnOhSFClrumrziiFdUryXPUxai4ZL5aVoL2zZG2+IpTwqgAqCZj63ZnvNemEUY3RzobmiJEhOLdovJvQ4yR7vJVXFUWFNWfNqbWFw+BOif0kL8n9XM//DdQjGPYvpyb0HvF56BWPxxQ0bz15Xr53fPLaaB3/kJDC4RbIKZ6VccwFqsnoav5mfPx2ZLqXX7vHUgl+jNfMvSfOnp3JoU2wD4YIIHFoct4jAgWX1hHyxkNlvjFNoUS/yro7SS5ioggnZWZvxmTShQlhu/3nZMM=
-      file: dist/backup_cloud-0.1.tar.gz
+      file: dist/backup_cloud-0.2.tar.gz
       on:
         repo: michael-paddle/backup-base
         branch: tested

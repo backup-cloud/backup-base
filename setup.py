@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 
-import setuptools
+from setuptools import setup, find_packages
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-setuptools.setup(
+setup(
     name="backup_cloud",
-    version="0.1",
+    version="0.2",
     author="Michael De La Rue",
     author_email="michael-paddle@fake.github.com",
     description="Backup your entire (AWS) cloud - base part",
     long_description=long_description,
     url="https://github.com/michael-paddle/backup-base",
-    packages=setuptools.find_packages(),
+    packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
