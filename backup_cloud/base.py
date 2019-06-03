@@ -80,7 +80,7 @@ class BackupContext:
     def s3_target_url(self) -> str:
         s3path = self.s3_path()
         if s3path.endswith("/") or not s3path:
-            target = self.s3_path() + "backup"
+            full_path = self.s3_path() + "backup"
         else:
             full_path = s3path + "/backup"
         return full_path
