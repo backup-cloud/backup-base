@@ -36,7 +36,7 @@ def step_impl(context) -> None:
 
 
 @typechecked(always=True)
-@given(u"that I have multiple key files configured")
+@given(u"I have multiple key files configured")
 def step_impl_0(context) -> None:
 
     context.public_key = None
@@ -106,7 +106,7 @@ def step_impl_1_1(context):
 
 
 @typechecked(always=True)
-@given(u"that I have configured a public key and a reference to it")
+@given(u"I have configured a public key and a reference to it")
 def step_impl_2(context) -> None:
     context.execute_steps(
         u"""

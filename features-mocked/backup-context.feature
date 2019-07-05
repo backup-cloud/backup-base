@@ -9,21 +9,21 @@ encryption of backups.
           and the public key from that key pair is stored in an s3 bucket
 
   Scenario: prepare for backup
-      Given that I have a backup context configured with matching users
+      Given I have a backup context configured with matching users
        When I run a backup script from that context
        Then my S3 URL should be configured
         and my encryption command should be configured
 
   @future
   Scenario: verify 
-      Given that I have a backup context configured with matching users
+      Given I have a backup context configured with matching users
        When I request an encryption command
        Then environment variables and a script should be set up
         and the script should encrypt my data
 
   @future
   Scenario: encryption should handle multiple keys
-      Given that I have multiple keys for different backup users
-        and that I have a system for encypting backups
+      Given I have multiple keys for different backup users
+        and I have a system for encypting backups
        When I run the backup
-       Then that data should be readable with any of the private keys corresponding to the public keys in the context
+       Then data should be readable with any of the private keys corresponding to the public keys in the context

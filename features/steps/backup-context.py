@@ -11,8 +11,8 @@ def eprint(*args, **kwargs) -> None:
     print(*args, file=sys.stderr, **kwargs)
 
 
-@given(u"that I have prepared my account with definitions for backups")
-@given(u"that I have a backup context configured with matching users")
+@given(u"I have prepared my account with definitions for backups")
+@given(u"I have a backup context configured with matching users")
 def step_impl_0(context) -> None:
     context.ssm_path = "/testing/backup_context/" + context.random_test_prefix
 
@@ -24,9 +24,7 @@ def step_impl_0(context) -> None:
     context.s3_backup_target = bc.s3_path() + "/backup"
 
 
-@given(
-    u"that I have a backup context configured with matching users with incorrect s3_path"
-)
+@given(u"I have a backup context configured with matching users with incorrect s3_path")
 def step_impl_1(context) -> None:
     context.ssm_path = "/testing/backup_context/" + context.random_test_prefix
 

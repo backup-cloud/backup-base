@@ -6,18 +6,18 @@ have a standard easy way to set up backup encryption
     given I have access to an account for doing backups
 
     Scenario: check that we correctly encrypt a file
-    given that I have a file in my directory
+    given I have a file in my directory
       and I have a private public key pair
       and the public key from that key pair is stored in an s3 bucket
-      and that I have a backup context configured with matching users
+      and I have a backup context configured with matching users
      when I run a script that calls my encryption command on that file
      then an encrypted file should be created
       and if I decrypt that file the content with the original GPG setup
 
     @future
     Scenario: check that we automatically find all default keys
-    given that I have a file in my directory
-      and that I have multiple key files configured
+    given I have a file in my directory
+      and I have multiple key files configured
       and the public keys from those key pairs are stored in my s3 backup bucket
      when I configure a backup context 
       and I run a script that calls my encryption command on that file
@@ -26,8 +26,8 @@ have a standard easy way to set up backup encryption
 
     @future
     Scenario: ignore non specified keys
-    given that I have a file in my directory
-      and that I have multiple key files configured
+    given I have a file in my directory
+      and I have multiple key files configured
      when I configure a backup context specifyig one specific key
       and I run a script that calls my encryption command on that file
      then an encrypted file should be created

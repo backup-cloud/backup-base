@@ -30,7 +30,7 @@ def step_impl(context) -> None:
 
 
 @typechecked(always=True)
-@given(u"that I have configured my settings in SSM")
+@given(u"I have configured my settings in SSM")
 def step_impl_1(context) -> None:
     bname = context.s3_test_bucket = environ["S3_TEST_BUCKET"]
     s3path = context.s3_test_path
@@ -41,14 +41,14 @@ def step_impl_1(context) -> None:
 
 
 @typechecked(always=True)
-@given(u"that I have an S3 backup bucket where I have write access")
+@given(u"I have an S3 backup bucket where I have write access")
 def step_impl_2(context) -> None:
     # we are using the same bucket so this can be empty for now
     pass
 
 
 @typechecked(always=True)
-@given(u"that I have a file in S3 to backup")
+@given(u"I have a file in S3 to backup")
 def step_impl_3(context) -> None:
     context.test_data = "".join(
         [random.choice(string.ascii_letters + string.digits) for n in range(16)]

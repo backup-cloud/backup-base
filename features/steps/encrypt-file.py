@@ -10,7 +10,7 @@ when: Any
 then: Any
 
 
-@given(u"that I have a file in my directory")
+@given(u"I have a file in my directory")
 def step_impl(context):
     context.test_data = "".join(
         [random.choice(string.ascii_letters + string.digits) for n in range(16)]
