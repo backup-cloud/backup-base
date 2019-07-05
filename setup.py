@@ -19,6 +19,9 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Operating System :: OS Independent",
     ],
+    entry_points={
+        "console_scripts": ["start_backup_context = backup_cloud.shell_start:main"]
+    },
     # python gpgme (the official library distributed by the GPG team)
     # has to be installed by the operating system so we don't include
     # it here so that PIP does not attempt to install it!

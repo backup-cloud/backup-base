@@ -19,9 +19,18 @@ all: prepare lint build test
 
 test: build pytest behave doctest
 
-behave: checkvars
+behave: develop checkvars
 	$(BEHAVE) --tags '~@future' features-mocked
 	$(BEHAVE) --tags '~@future'
+
+
+
+# develop is needed to install scripts that are called during testing 
+develop: .develop.makestamp
+
+.develop.makestamp: setup.py backup_cloud/shell_start.py
+	python setup.py develop
+	touch $@
 
 checkvars:
 	if [ '!' -f $${KEYFILE} ] ; then \
@@ -77,7 +86,7 @@ prepare-account: prepare-account.yml
 prep_test: prepare-test-enc-backup.yml
 	ansible-playbook -vvv prepare-test-enc-backup.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
 
-wip: build
+wip: develop build
 	$(BEHAVE) --wip features-mocked
 	$(BEHAVE) --wip
 
@@ -91,4 +100,4 @@ testfix:
 
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
-.PHONY: all test behave checkvars pytest doctest init deb_install apk_install prepare prep_test prepare_account wip build lint testfix fix clean
+.PHONY: all develop test behave checkvars pytest doctest init deb_install apk_install prepare prep_test prepare_account wip build lint testfix fix clean

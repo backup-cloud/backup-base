@@ -62,7 +62,7 @@ configuration from S3 and handles backup encryption for you.
     >>> from backup_cloud import BackupContext
     >>> rcp = ["test@example.com"] 
     >>> bc = BackupContext(ssm_path="/bc-demo", recipients=rcp)
-    >>> cp = bc.run("myscript.sh")
+    >>> cp = bc.run("bin/myscript.sh")
     >>> print(cp.stdout.decode('UTF-8').strip())
     *********************
     backing up everything

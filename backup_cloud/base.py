@@ -4,7 +4,7 @@ import boto3  # type: ignore
 import os
 import sys
 import gpg  # type: ignore
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, mkdtemp, NamedTemporaryFile
 from botocore.exceptions import ClientError  # type: ignore
 from typing import Dict, List, Generator
 
@@ -18,7 +18,7 @@ class BackupContext:
     ssm_path: path in SSM to find configuration parameters
     recipients: specific list of gpg recipients to encrypted to.
     bindir: directory in create scripts used for encryption etc.
-
+    no_clean: don't delete GPG data directory when garbage collected (useful for scripts)
     """
 
     def __init__(
@@ -26,6 +26,7 @@ class BackupContext:
         ssm_path: str = "/backup_cloud/base_defs",
         recipients: List[str] = None,
         bindir: str = None,
+        clean: bool = True,
     ):
         if bindir is None:
             bindir = os.getcwd() + "/bin"
@@ -42,8 +43,12 @@ class BackupContext:
         self.all_recipients: List[str] = []
 
         c = gpg.Context(armor=True)
-        self.gpgdir = TemporaryDirectory()
-        c.home_dir = self.gpgdir.name
+        if clean:
+            self._gpgdir = TemporaryDirectory()
+            self.dirname = self._gpgdir.name
+        else:
+            self.dirname = mkdtemp()
+        c.home_dir = self.dirname
         self.get_gpg_keys(c)
         self.gpg_context = c
 
@@ -170,7 +175,7 @@ class BackupContext:
 
         return c.encrypt(plaintext, *args, **options)
 
-    def setup_encrypt_command(self) -> None:
+    def setup_encrypt_command(self) -> str:
         """prepare a command that can be used in scripts for encrypting data
 
         this will be done for you automatically if you use the
@@ -197,13 +202,15 @@ set -evx
 rm -f $1.gpg
 gpg --batch --homedir "{HOMEDIR}" {RCPTS} --encrypt --trust-model always $1
 """.format(
-            HOMEDIR=self.gpgdir.name, RCPTS=rcpt_clause
+            HOMEDIR=self.dirname, RCPTS=rcpt_clause
         )
 
-        prog_path = self.bindir + "/backup_encrypt"
-        with open(prog_path, "w") as script_file:
-            script_file.write(script)
-        subprocess.call(["chmod", "a+x", prog_path])
+        script_file = NamedTemporaryFile(delete=False)
+        script_file.write(script.encode("utf-8"))
+        script_file.close()
+        self.script_path = script_file.name
+        subprocess.call(["chmod", "a+x", self.script_path])
+        return self.script_path
 
     def run(self, command: List[str]) -> CompletedProcess:
         """run a command with the appropriate encryption commands ready to use
@@ -233,12 +240,11 @@ gpg --batch --homedir "{HOMEDIR}" {RCPTS} --encrypt --trust-model always $1
 
         """
 
-        self.setup_encrypt_command()
+        script = self.setup_encrypt_command()
         s3_target = self.s3_target_url()
         enc_env: Dict[str, str] = {
             "BACKUP_CONTEXT_S3_TARGET": s3_target,
-            "BACKUP_CONTEXT_ENCRYPT_COMMAND": "backup_encrypt",
-            "PATH": self.bindir + ":" + os.environ["PATH"],
+            "BACKUP_CONTEXT_ENCRYPT_COMMAND": script,
         }
         cp = subprocess.run(
             command, env=enc_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE

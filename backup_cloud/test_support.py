@@ -64,7 +64,7 @@ def make_new_keypair(gpg_context: gpg.Context, userid: str = None):
 
 def set_string_par(ssm, path: str, value: str) -> None:
     ssm_paramdef = dict(Name=path, Value=value, Type="String", Overwrite=True)
-    eprint("putting: " + value + "into ssm param: " + path)
+    eprint("putting: " + value + " into ssm param: " + path)
     ssm.put_parameter(**ssm_paramdef)
 
 

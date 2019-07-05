@@ -8,7 +8,6 @@ encryption of backups.
           and I have a private public key pair
           and the public key from that key pair is stored in an s3 bucket
 
-  @wip
   Scenario: prepare for backup
       Given that I have a backup context configured with matching users
        When I run a backup script from that context

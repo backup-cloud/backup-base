@@ -37,6 +37,7 @@ def step_impl_url(context: Context) -> None:
 @typechecked(always=True)
 @then(u"my encryption command should be configured")  # type: ignore
 def step_impl_encrypt(context: Context) -> None:
+    bc: BackupContext = context.backup_context
     assert_that(
-        context.script_env["BACKUP_CONTEXT_ENCRYPT_COMMAND"], equal_to("backup_encrypt")
+        context.script_env["BACKUP_CONTEXT_ENCRYPT_COMMAND"], equal_to(bc.script_path)
     )
