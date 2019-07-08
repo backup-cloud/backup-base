@@ -1,6 +1,6 @@
 AWS_ACCOUNT_NAME ?= michael
 AWS_DEFAULT_REGION ?= us-east-2
-PYTHON ?= python
+PYTHON ?= python3
 BEHAVE ?= behave
 KEYFILE ?=.anslk_random_testkey
 
@@ -29,7 +29,7 @@ behave: develop checkvars
 develop: .develop.makestamp
 
 .develop.makestamp: setup.py backup_cloud/shell_start.py
-	python setup.py develop
+	$(PYTHON) setup.py develop
 	touch $@
 
 checkvars:
