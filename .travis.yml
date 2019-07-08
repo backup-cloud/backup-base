@@ -20,7 +20,7 @@ jobs:
     - $DOCKER_SH "$MAKE lint pytest PYTHON=$PYTHON"
   - name: test-functional-alpine
     env: DOCKER_SH="docker exec -t backup-test sh -vxc" DOCKER_IMAGE=alpine:latest
-      PYTHON=python3.6 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
+      PYTHON=python3.7 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
     script:
     - sh -vx ./build-script/docker_start.sh
     - sh -vx ./build-script/before_script.sh
