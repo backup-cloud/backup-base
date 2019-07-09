@@ -4,6 +4,7 @@ from hamcrest import assert_that, not_, contains, equal_to, greater_than
 import gpg
 from tempfile import TemporaryDirectory
 from typing import Any
+from backup_cloud.test_support import retrieve_backup_object
 
 given: Any
 when: Any
@@ -34,27 +35,30 @@ def step_impl_2(context):
     assert_that(context.encrypted_file_contents, not_(contains(context.test_data)))
 
 
-@then(
-    u"if I decrypt that file the content with the private key it should match the original"
-)
-def step_impl_3(context):
+def verify_encrypted_data(context, original_plaintext, cyphertext, private_key=None):
     c = gpg.Context(armor=True)
     gpgdir = TemporaryDirectory()
     c.home_dir = gpgdir.name
 
+    if private_key is None:
+        private_key = context.private_key
+
     assert_that(
-        len(context.private_key),
-        greater_than(64),
-        "private key is too short to be real",
+        len(private_key), greater_than(64), "private key is too short to be real"
     )
     assert_that(
-        len(context.encrypted_file_contents),
-        greater_than(64),
-        "encrypted file is too short to be real ",
+        len(cyphertext), greater_than(64), "encrypted file is too short to be real"
     )
-    c.key_import(context.private_key)
-    plaintext, result, verify_result = c.decrypt(context.encrypted_file_contents)
-    assert_that(plaintext, equal_to(context.test_data))
+    c.key_import(private_key)
+    result_plaintext, result, verify_result = c.decrypt(cyphertext)
+    assert_that(result_plaintext, equal_to(original_plaintext))
+
+
+@then(
+    u"if I decrypt that file the content with the private key it should match the original"
+)
+def step_impl_3(context):
+    verify_encrypted_data(context, context.test_data, context.encrypted_file_contents)
 
 
 @then(u"if I decrypt that file the content with the original GPG setup")
@@ -67,18 +71,21 @@ def step_impl_4(context):
 @then(u"I should be able to decrypt that file with each key provided")
 def step_impl_5(context):
     for private_key in [x[2] for x in context.key_pair_list]:
-        c = gpg.Context(armor=True)
-        gpgdir = TemporaryDirectory()
-        c.home_dir = gpgdir.name
+        verify_encrypted_data(
+            context,
+            context.test_data,
+            context.encrypted_file_contents,
+            private_key=private_key,
+        )
 
-        assert_that(
-            len(private_key), greater_than(64), "private key is too short to be real"
+
+@then(u"the data in s3 should match the original data when retrieved and decrypted")
+def step_impl_7(context):
+    for key in context.s3_expect_decrypted_files.keys():
+        encrypted_s3_data = retrieve_backup_object(context, key)
+        verify_encrypted_data(
+            context,
+            context.s3_expect_decrypted_files[key],
+            encrypted_s3_data,
+            private_key=context.private_key,
         )
-        assert_that(
-            len(context.encrypted_file_contents),
-            greater_than(64),
-            "encrypted file is too short to be real ",
-        )
-        c.key_import(private_key)
-        plaintext, result, verify_result = c.decrypt(context.encrypted_file_contents)
-        assert_that(plaintext, equal_to(context.test_data))

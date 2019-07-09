@@ -6,11 +6,35 @@ import sys
 import gpg  # type: ignore
 from tempfile import TemporaryDirectory, mkdtemp, NamedTemporaryFile
 from botocore.exceptions import ClientError  # type: ignore
-from typing import Dict, List, Generator
+from typing import Dict, List, Generator, Tuple
+from threading import Thread
 
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
+
+def _encrypt_worker(backup_context, source_stream, encrypted_stream):
+    backup_context.encrypt(source_stream, sink=encrypted_stream)
+    try:
+        encrypted_stream.flush()
+    except BrokenPipeError as e:
+        eprint("BrokenPipeError at end of encrypted stream;")
+        raise e
+    encrypted_stream.close()
+
+
+def _encrypt_worker_debug(backup_context, source_stream, encrypted_stream):
+    plaintext = source_stream.read()
+    eprint("read plaintext: " + str(len(plaintext)) + " bytes\n")
+    ciphertext, result, sign_result = backup_context.encrypt(plaintext)
+    encrypted_stream.write(ciphertext)
+    try:
+        encrypted_stream.flush()
+    except BrokenPipeError as e:
+        eprint("BrokenPipeError at end of encrypted stream;")
+        raise e
+    encrypted_stream.close()
 
 
 class BackupContext:
@@ -51,6 +75,18 @@ class BackupContext:
         c.home_dir = self.dirname
         self.get_gpg_keys(c)
         self.gpg_context = c
+
+    def get_recipients(self):
+        """return the recipients we should encrypt to
+
+        normally returns the recipients requested during startup or
+        all of the recipients in all known private keys if none were
+        specified.
+        """
+        if self.recipients is None:
+            return self.all_recipients
+        else:
+            return self.recipients
 
     def s3_path(self) -> str:
         """return the base path in S3 where we should work - read from SSM
@@ -169,13 +205,20 @@ class BackupContext:
         """
 
         c = self.gpg_context
-        recipient_keys = [c.get_key(k) for k in self.recipients]
+        recipient_keys = [c.get_key(k) for k in self.get_recipients()]
         options = dict(recipients=recipient_keys, sign=False, always_trust=True)
         options.update(kwargs)
 
         return c.encrypt(plaintext, *args, **options)
 
-    def setup_encrypt_command(self) -> str:
+    def create_script(self, script: str) -> str:
+        script_file = NamedTemporaryFile(delete=False)
+        script_file.write(script.encode("utf-8"))
+        script_file.close()
+        subprocess.call(["chmod", "a+x", script_file.name])
+        return script_file.name
+
+    def setup_commands(self) -> Tuple[str, str]:
         """prepare a command that can be used in scripts for encrypting data
 
         this will be done for you automatically if you use the
@@ -183,9 +226,7 @@ class BackupContext:
         which will run the encryption for you.
         """
 
-        recipients = self.recipients
-        if recipients is None:
-            recipients = self.all_recipients
+        recipients = self.get_recipients()
 
         if len(recipients) < 1:
             raise Exception(
@@ -196,21 +237,47 @@ class BackupContext:
             '--recipient "' + '" --recipient "'.join([str(x) for x in recipients]) + '"'
         )
 
-        script = """\
+        encrypt_script = """\
 #!/bin/sh
 set -evx
+if [[ ! -e $1 ]]
+then
+        echo "file $1 doesn't exist to encrypt - aborting" >&2
+        exit 6
+fi
+if [[ ! -f $1 ]]
+then
+        echo "file $1 is not a plain file we can encrypt - aborting" >&2
+        exit 6
+fi
 rm -f $1.gpg
 gpg --batch --homedir "{HOMEDIR}" {RCPTS} --encrypt --trust-model always $1
 """.format(
             HOMEDIR=self.dirname, RCPTS=rcpt_clause
         )
 
-        script_file = NamedTemporaryFile(delete=False)
-        script_file.write(script.encode("utf-8"))
-        script_file.close()
-        self.script_path = script_file.name
-        subprocess.call(["chmod", "a+x", self.script_path])
-        return self.script_path
+        self.encrypt_script_path = self.create_script(encrypt_script)
+        upload_script = """\
+#!/bin/sh
+set -evx
+if [[ ! -e "$1" ]]
+then
+        echo "file $1 doesn't exist to upload - aborting" >&2
+        exit 6
+fi
+if [[ "$1" == "" ]]
+then
+        echo "missing argument - backup-cloud-upload requires source_directory and dest_s3_path"
+        exit 6
+fi
+backup-cloud-upload {SSM_PATH} $1 $2
+""".format(
+            SSM_PATH=self.ssm_path
+        )
+
+        self.upload_script_path = self.create_script(upload_script)
+
+        return self.encrypt_script_path, self.upload_script_path
 
     def run(self, command: List[str]) -> CompletedProcess:
         """run a command with the appropriate encryption commands ready to use
@@ -240,7 +307,7 @@ gpg --batch --homedir "{HOMEDIR}" {RCPTS} --encrypt --trust-model always $1
 
         """
 
-        script = self.setup_encrypt_command()
+        script, _ = self.setup_commands()
         s3_target = self.s3_target_url()
         enc_env: Dict[str, str] = {
             "BACKUP_CONTEXT_S3_TARGET": s3_target,
@@ -259,3 +326,88 @@ gpg --batch --homedir "{HOMEDIR}" {RCPTS} --encrypt --trust-model always $1
             )
             cp.check_returncode()
         return cp
+
+    def upload_path(self, src_directory, dest_s3_path):
+        """upload a directory to s3 encrypting the individual file(s)
+        as we go.
+
+        In order to have a reliable secure backup many backup systems
+        dump multiple files in a directory structure.  E.g. git backup
+        systems dump each repository into a separate directory.   This
+        function uploads these files as is but encrypts each
+        individual file.
+
+        N.B. if the names of the files themselves may be a problem if
+        leaked this can be a non-appropriate solution.  E.g. having
+        "list-of-spectra-secret-agenta.sql.gpg" will almost certainly
+        mean James Bond will force you to talk.
+
+        On the other hand, the file "customer-addresses.sql.gpg" will
+        just give away that you have customers and that you have lots
+        of them.  Provided that the encryption is done correctly you
+        will not end up leaing your customer's personal information,
+        which solves a major commercial problem.
+
+        """
+        if not os.path.isdir(src_directory):
+            raise Exception("upload_path() can only handle directories right now!")
+
+        basepath, target_dirname = os.path.split(src_directory)
+
+        for subdir, dirs, files in os.walk(src_directory):
+            for file in files:
+                src_name = os.path.join(subdir, file)
+                rel = os.path.relpath(subdir, basepath)
+                dest_name = (
+                    self.s3_path() + "/backup/" + dest_s3_path + "/" + rel + "/" + file
+                )
+
+                self.backup_file_to_s3(src_name, self.s3_bucket(), dest_name)
+
+    def backup_file_to_s3(self, src_file: str, dest_bucket, dest_path: str):
+        """backup a single file to S3
+
+        Take a single file encrypt it and upload it into an S3 object.
+        """
+
+        eprint(
+            "uploading "
+            + src_file
+            + " to bucket "
+            + dest_bucket.name
+            + " with path "
+            + dest_path
+            + "\n"
+        )
+
+        (r_encrypt, w_encrypt) = os.pipe()
+
+        with open(src_file, "rb") as f:
+            r_encrypt_file = os.fdopen(r_encrypt, mode="rb")
+            w_encrypt_file = os.fdopen(w_encrypt, mode="wb")
+
+            encrypt_thread = Thread(
+                target=_encrypt_worker_debug,
+                args=(self, f, w_encrypt_file),
+                daemon=True,
+            )
+            encrypt_thread.start()
+
+            dest_obj = dest_bucket.Object(dest_path)
+
+            def callback(x):
+                eprint("uploaded " + str(x) + " bytes")
+
+            try:
+                dest_obj.upload_fileobj(r_encrypt_file, Callback=callback)
+            except ClientError as e:
+                eprint(
+                    "Failed to store: ",
+                    src_file,
+                    " in: ",
+                    dest_bucket,
+                    "/",
+                    dest_path,
+                    " aborting.\n",
+                )
+                raise e

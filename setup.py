@@ -20,7 +20,10 @@ setup(
         "Operating System :: OS Independent",
     ],
     entry_points={
-        "console_scripts": ["start_backup_context = backup_cloud.shell_start:main"]
+        "console_scripts": [
+            "start-backup-context = backup_cloud.shell_start:main",
+            "backup-cloud-upload = backup_cloud.shell_start:upload_main",
+        ]
     },
     # python gpgme (the official library distributed by the GPG team)
     # has to be installed by the operating system so we don't include

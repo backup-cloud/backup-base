@@ -1,0 +1,8 @@
+ensure we have clean ssm paths with regard to leading /
+
+'/' is an invalid path
+
+'/this' may be questionable
+
+a) understnd
+b) ensure we are safe

@@ -39,5 +39,6 @@ def step_impl_url(context: Context) -> None:
 def step_impl_encrypt(context: Context) -> None:
     bc: BackupContext = context.backup_context
     assert_that(
-        context.script_env["BACKUP_CONTEXT_ENCRYPT_COMMAND"], equal_to(bc.script_path)
+        context.script_env["BACKUP_CONTEXT_ENCRYPT_COMMAND"],
+        equal_to(bc.encrypt_script_path),
     )

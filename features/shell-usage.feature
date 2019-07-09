@@ -14,3 +14,11 @@ needed.
         and I have a shell script which calls the backup command and encrypts that file
        When I run that script 
        Then an encrypted file should be created
+
+  @wip
+  Scenario: push directory from script
+      Given I have prepared my account with definitions for backups
+        and I have a directory containing multiple files
+        and I have an upload script which calls the backup command and uploads the directory
+       When I run the upload script giving it the directory name and an s3 subfolder
+       Then the data in s3 should match the original data when retrieved and decrypted

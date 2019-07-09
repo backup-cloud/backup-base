@@ -1,8 +1,7 @@
 from typeguard import typechecked  # type: ignore
 from os import environ
-from backup_cloud.test_support import ensure_s3_paths_in_ssm
+from backup_cloud.test_support import ensure_s3_paths_in_ssm, retrieve_backup_object
 from backup_cloud.s3 import backup_s3_to_s3
-import boto3
 import random
 import string
 from subprocess import run
@@ -78,16 +77,9 @@ def step_impl_5(context) -> None:
 @typechecked(always=True)
 @then(u"a backup object should be created in the S3 destination bucket")
 def step_impl_6(context) -> None:
-    client = boto3.client("s3")
-    o_name = context.s3_dest_path
-    obj = context.store_bucket.Object(o_name)
-    try:
-        res = obj.get()
-    except client.exceptions.NoSuchKey as e:
-        eprint("couldn't access missing object: " + o_name)
-        raise (e)
-
-    context.encrypted_file_contents = res["Body"].read()
+    context.encrypted_file_contents = retrieve_backup_object(
+        context, context.s3_dest_path
+    )
     assert_that(
         len(context.encrypted_file_contents),
         greater_than(15),

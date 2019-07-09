@@ -77,3 +77,21 @@ def ensure_s3_paths_in_ssm(ssm_path: str, s3_bucket: str, s3_path: str) -> None:
     ssm = boto3.client("ssm")
     set_string_par(ssm, ssm_path + "/s3_bucket", s3_bucket)
     set_string_par(ssm, ssm_path + "/s3_path", s3_path)
+
+
+def retrieve_backup_object(context, path):
+    """simply get an encrypted object from the backup store
+
+    this method doesn't attempt to stream the object and assumes a
+    fixed location/structure
+
+    """
+    client = boto3.client("s3")
+    obj = context.store_bucket.Object(path)
+    try:
+        res = obj.get()
+    except client.exceptions.NoSuchKey as e:
+        eprint("couldn't access missing object: " + path)
+        raise (e)
+
+    return res["Body"].read()

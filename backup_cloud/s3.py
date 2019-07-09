@@ -1,4 +1,4 @@
-from backup_cloud.base import BackupContext
+from backup_cloud.base import BackupContext, _encrypt_worker, _encrypt_worker_debug
 import boto3
 from botocore.exceptions import ClientError  # type: ignore
 import sys
@@ -42,29 +42,6 @@ def _streampush_worker(src_stream, dest_stream):
     dest_stream.close()
 
 
-def _encrypt_worker(backup_context, source_stream, encrypted_stream):
-    backup_context.encrypt(source_stream, sink=encrypted_stream)
-    try:
-        encrypted_stream.flush()
-    except BrokenPipeError as e:
-        eprint("BrokenPipeError at end of encrypted stream;")
-        raise e
-    encrypted_stream.close()
-
-
-def _encrypt_worker_debug(backup_context, source_stream, encrypted_stream):
-    plaintext = source_stream.read()
-    eprint("read plaintext: " + str(len(plaintext)) + " bytes\n")
-    ciphertext, result, sign_result = backup_context.encrypt(plaintext)
-    encrypted_stream.write(ciphertext)
-    try:
-        encrypted_stream.flush()
-    except BrokenPipeError as e:
-        eprint("BrokenPipeError at end of encrypted stream;")
-        raise e
-    encrypted_stream.close()
-
-
 def backup_s3_to_s3(
     backup_context: BackupContext,
     src_bucket: str,
@@ -92,9 +69,14 @@ def backup_s3_to_s3(
         daemon=True,
     )
     t1.start()
+    debug = True
+    if debug:
+        target = _encrypt_worker_debug
+    else:
+        target = _encrypt_worker
     t2 = Thread(
-        target=_encrypt_worker_debug,
         args=(backup_context, r_download_file, w_encrypt_file),
+        target=target,
         daemon=True,
     )
     t2.start()

@@ -13,7 +13,14 @@ set -evx
 # pip install https://github.com/backup-cloud/backup-base/archive/20190603113026-fcb88b0.tar.gz
 SSM_PATH=$1
 
-STARTUP="$(start_backup_context "$SSM_PATH")"
+STARTUP="$(start-backup-context "$SSM_PATH")"
 echo "startup output: $STARTUP"
 eval "$STARTUP"
+if [ "$BACKUP_CONTEXT_ENCRYPT_COMMAND" = "" ]
+then
+    echo BACKUP_CONTEXT_ENCRYPT_COMMAND variable is not defined aborting >&2
+    exit 5
+fi
+    
+
 $BACKUP_CONTEXT_ENCRYPT_COMMAND testdata.dat testdata.dat.gpg
