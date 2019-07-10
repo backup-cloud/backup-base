@@ -11,11 +11,11 @@ which are not automatically installed by pip.  See below
 Until release 1.0 installs will have to be done through direct pip
 installs from GitHub
 
-    pip install https://travis-ci.org/michael-paddle/backup-base
+    pip install https://travis-ci.org/backup-cloud/backup-base
 
 or
 
-    pip install https://github.com/michael-paddle/backup-base/archive/20190507151318-f1bc9fc.zip
+    pip install https://github.com/backup-cloud/backup-base/archive/20190507151318-f1bc9fc.zip
 
 to install a specific release
 
@@ -106,10 +106,10 @@ Status and getting releases
 
 Releases are currently created automatically in the case of succesfull
 automated testing.  You can simply take the latest one from
-[the Release page](https://github.com/michael-paddle/backup-base/releases).
+[the Release page](https://github.com/backup-cloud/backup-base/releases).
 
 Builds are run in travis:
-[![Build Status](https://travis-ci.org/michael-paddle/backup-base.svg?branch=tested)](https://travis-ci.org/michael-paddle/backup-base)
+[![Build Status](https://travis-ci.org/backup-cloud/backup-base.svg?branch=tested)](https://travis-ci.org/backup-cloud/backup-base)
 
 
 Travis Encrypted Files

@@ -7,12 +7,12 @@ with open("README.md", "r") as fh:
 
 setup(
     name="backup_cloud",
-    version="0.2",
+    version="0.3",
     author="Michael De La Rue",
     author_email="michael-paddle@fake.github.com",
     description="Backup your entire (AWS) cloud - base part",
     long_description=long_description,
-    url="https://github.com/michael-paddle/backup-base",
+    url="https://github.com/backup-cloud/backup-base",
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
