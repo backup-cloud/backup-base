@@ -30,9 +30,13 @@ all: develop prepare lint build test
 
 test: develop build pytest behave doctest
 
-behave: develop checkvars
-	$(BEHAVE) --tags '~@future' features-mocked
-	$(BEHAVE) --tags '~@future'
+behave: behave-aws behave-mocked
+
+behave-aws: develop checkvars
+	$(BEHAVE) --stage=aws --tags '~@future'
+
+behave-mocked: develop checkvars
+	$(BEHAVE) --stage=mocked --tags '~@future'
 
 # develop is needed to install scripts that are called during testing 
 develop: .develop.makestamp
@@ -84,7 +88,7 @@ ENC_DIR=encrypted_build_files
 ENC_FILENAMES=aws_credentials.demo.env aws_credentials.env aws_credentials_travis.yml deploy_key
 ENC_FILES := $(addprefix $(ENC_DIR)/,$(ENC_FILENAMES))
 
-encrypted_build_files.tjz: prepare-account prep_test $(ENC_FILES)
+encrypted_build_files.tjz: .prepare-account.makestamp .prepare-test.makestamp $(ENC_FILES)
 	tar cvvjf $@ -C $(ENC_DIR) $(ENC_FILENAMES)
 
 encrypted_build_files.tjz.enc: encrypted_build_files.tjz
@@ -119,4 +123,4 @@ clean:
 
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
-.PHONY: all develop test behave checkvars pytest doctest init deb_install apk_install prepare prep_test prepare_account wip build lint testfix fix clean
+.PHONY: all develop test behave behave-aws behave-mocked checkvars pytest doctest init deb_install apk_install prepare prep_test prepare_account wip build lint testfix fix clean
