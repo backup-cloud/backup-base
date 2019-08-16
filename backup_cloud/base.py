@@ -149,7 +149,7 @@ class BackupContext:
             except ClientError:
                 eprint(
                     "Failed to get public key: s3://"
-                    + obj.bucket
+                    + obj.bucket_name
                     + "/"
                     + obj.key
                     + "\nIgnoring file and continuing.\n"
@@ -354,7 +354,7 @@ backup-cloud-upload {SSM_PATH} $1 $2
 
         basepath, target_dirname = os.path.split(src_directory)
 
-        for subdir, dirs, files in os.walk(src_directory):
+        for subdir, _dirs, files in os.walk(src_directory):
             for file in files:
                 src_name = os.path.join(subdir, file)
                 rel = os.path.relpath(subdir, basepath)
@@ -368,7 +368,12 @@ backup-cloud-upload {SSM_PATH} $1 $2
         """backup a single file to S3
 
         Take a single file encrypt it and upload it into an S3 object.
+
+        We delete the initial slash and any double slashes from any
+        path to stop empty folder names coming through
         """
+        # re.sub("/{2,}", "/", dest_path)
+        # re.sub("/", "", dest_path)
 
         eprint(
             "uploading "

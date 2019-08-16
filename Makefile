@@ -15,20 +15,30 @@ S3_TEST_BUCKET = test-backup-$(RANDOM_KEY)
 export RANDOM_KEY
 export S3_TEST_BUCKET
 
-all: prepare lint build test
+LIBFILES := $(shell find backup_cloud -name '*.py')
 
-test: build pytest behave doctest
+# we want to automate all the setup but we don't want to do it by surprise so we default
+# to aborting with a message to correct things
+abort:
+	@echo "*************************************************************************"
+	@echo "please run 'make all' which will install library and dependencies locally"
+	@echo "*************************************************************************"
+	@echo
+	exit 2
+
+all: develop prepare lint build test
+
+test: develop build pytest behave doctest
 
 behave: develop checkvars
 	$(BEHAVE) --tags '~@future' features-mocked
 	$(BEHAVE) --tags '~@future'
 
-
-
 # develop is needed to install scripts that are called during testing 
 develop: .develop.makestamp
 
-.develop.makestamp: setup.py backup_cloud/shell_start.py
+.develop.makestamp: setup.py backup_cloud/shell_start.py $(LIBFILES)
+	$(PYTHON) setup.py install --force
 	$(PYTHON) setup.py develop
 	touch $@
 
@@ -80,11 +90,17 @@ encrypted_build_files.tjz: prepare-account prep_test $(ENC_FILES)
 encrypted_build_files.tjz.enc: encrypted_build_files.tjz
 	travis encrypt-file --force --no-interactive --org $<
 
-prepare-account: prepare-account.yml
-	ansible-playbook -vvv prepare-account.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
+prepare-account: .prepare-account.makestamp
 
-prep_test: prepare-test-enc-backup.yml
+.prepare-account.makestamp: prepare-account.yml $(wildcard aws_credentials_*_iam_admin.yml)  $(wildcard roles/test_account/*/*.yml) 
+	ansible-playbook -vvv prepare-account.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
+	touch $@
+
+prep_test: .prepare-test.makestamp
+
+.prepare-test.makestamp:
 	ansible-playbook -vvv prepare-test-enc-backup.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
+	touch $@
 
 wip: develop build
 	$(BEHAVE) --wip features-mocked
@@ -93,10 +109,13 @@ wip: develop build
 build:
 
 lint:
-	./lint-all-the-files.sh
+	pre-commit run -a
 
 testfix:
 	find . -name '*.py' | xargs black --line-length=100 --diff
+
+clean:
+	rm *.makestamp
 
 fix:
 	find . -name '*.py' | xargs black --line-length=100 

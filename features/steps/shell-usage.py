@@ -32,7 +32,7 @@ def step_impl_3(context):
     context.directory_name = context.directory.name
     context.filecontents = filecontents = {}
     basepath, dirname = os.path.split(context.directory.name)
-    for i in range(5):
+    for _i in range(5):
         (fd, path) = mkstemp(dir=context.directory.name)
         dirpath, filename = os.path.split(path)
         file = os.fdopen(fd, mode="wb")
