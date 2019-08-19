@@ -33,10 +33,10 @@ test: develop build pytest behave doctest
 behave: behave-aws behave-mocked
 
 behave-aws: develop checkvars
-	$(BEHAVE) --stage=aws --tags '~@future'
+	$(BEHAVE) --stage=aws --tags=-future --tags=-mocked
 
 behave-mocked: develop checkvars
-	$(BEHAVE) --stage=mocked --tags '~@future'
+	$(BEHAVE) --stage=mocked --tags=-future --tags=mocked
 
 # develop is needed to install scripts that are called during testing 
 develop: .develop.makestamp
