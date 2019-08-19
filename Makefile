@@ -113,6 +113,7 @@ wip: develop build
 build:
 
 lint:
+	pre-commit install --install-hooks
 	pre-commit run -a
 
 testfix:
