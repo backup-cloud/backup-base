@@ -8,3 +8,4 @@ apt update
 apt install make
 make --trace deb_install PYTHON="$PYTHON"
 python --version; echo ; python2 --version ; python3 --version
+pre-commit install --install-hooks
