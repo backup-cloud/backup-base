@@ -4,6 +4,8 @@
 # commands.  It expects to be run _inside_ the container (e.g. with
 # docker exec) and in the base directory of the repo.
 
+set -vx
+
 apk update
 apk add make python3 py3-gpgme ansible openssl
 make pip_install

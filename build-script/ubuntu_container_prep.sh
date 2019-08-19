@@ -4,8 +4,10 @@
 # commands.  It expects to be run _inside_ the container (e.g. with
 # docker exec) and in the base directory of the repo.
 
+set -vx
+
 apt-get update
-apt-get install -y software-properties-common make git python3.7 python3-pip shellcheck libgpgme11 python3-gpg shellcheck
+apt-get install -y software-properties-common make git python3.7 python3-pip shellcheck libgpgme11 python3-gpg shellcheck ruby-full
 add-apt-repository -y ppa:ansible/ansible-2.7
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y ansible python-pip python-boto3
