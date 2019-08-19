@@ -14,23 +14,16 @@ repos:
     - id: detect-private-key
     - id: end-of-file-fixer
     - id: flake8
-      exclude: '^features/.*_steps/.*'
+      exclude: '^features/.*_steps/*'
       args:
         - --ignore=W503,E402,E501
         - --max-line-length=131
-    - id: flake8
-      files: '^features[-a-z0-9]*/*_steps/.*\.py'
-      args:
-        - --ignore=W503,E402,E501,F811
-        - --max-line-length=131
-        - --builtins=given,when,then
     - id: forbid-new-submodules
     - id: check-yaml
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: 'master'  # Use the sha / tag you want to point at
   hooks:
   - id: mypy
-    exclude: '^features-mocked/environment.py' 
 - repo: https://github.com/jumanjihouse/pre-commit-hooks
   rev: 'master'  # Use the sha / tag you want to point at
   hooks:

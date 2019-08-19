@@ -107,8 +107,8 @@ prep_test: .prepare-test.makestamp
 	touch $@
 
 wip: develop build
-	$(BEHAVE) --wip features-mocked
-	$(BEHAVE) --wip
+	$(BEHAVE) --stage=aws --tags=-future --tags=-mocked
+	$(BEHAVE) --stage=mocked --tags=-future --tags=mocked
 
 build:
 
