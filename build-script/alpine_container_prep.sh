@@ -5,6 +5,6 @@
 # docker exec) and in the base directory of the repo.
 
 apk update
-apk add make
-make --trace apk_install PYTHON="$PYTHON"
+apk add make python3 py3-gpgme ansible openssl
+make pip_install
 python --version; echo ; python2 --version ; python3 --version

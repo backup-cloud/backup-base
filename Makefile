@@ -20,9 +20,9 @@ LIBFILES := $(shell find backup_cloud -name '*.py')
 # we want to automate all the setup but we don't want to do it by surprise so we default
 # to aborting with a message to correct things
 abort:
-	@echo "*************************************************************************"
-	@echo "please run 'make all' which will install library and dependencies locally"
-	@echo "*************************************************************************"
+	@echo "***************************************************************************"
+	@echo "* please run 'make all' to install library and programs locally then test *"
+	@echo "***************************************************************************"
 	@echo
 	exit 2
 
@@ -59,28 +59,8 @@ pytest:
 doctest:
 	$(PYTHON) -m doctest -v README.md
 
-init:
+pip_install:
 	$(PYTHON) -m pip install -r requirements.txt
-
-# shellcheck does not exist yet on alpine so we skip that.
-
-apk_install: apk_packages_install init
-
-apk_packages_install:
-	apk update
-	apk add python3 py3-gpgme ansible openssl
-
-deb_install: deb_packages_install init
-
-deb_packages_install:
-	apt-get update
-	apt-get install -y software-properties-common
-	add-apt-repository -y ppa:ansible/ansible-2.7
-	apt-get update
-	apt-get install -y python3.7 python3-pip shellcheck libgpgme11 python3-gpg shellcheck
-	DEBIAN_FRONTEND=noninteractive apt-get install -y ansible python-pip python-boto3
-	$(PYTHON_REQS)
-
 
 prepare: encrypted_build_files.tjz.enc
 
@@ -124,4 +104,4 @@ clean:
 
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
-.PHONY: all develop test behave behave-aws behave-mocked checkvars pytest doctest init deb_install apk_install prepare prep_test prepare_account wip build lint testfix fix clean
+.PHONY: all develop test behave behave-aws behave-mocked checkvars pytest doctest pip_install prepare prep_test prepare_account wip build lint testfix fix clean
