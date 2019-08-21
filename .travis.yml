@@ -17,8 +17,7 @@ jobs:
     - sh -vx ./build-script/docker_start.sh
     - sh -vx ./build-script/before_script.sh
     - $DOCKER_SH "PYTHON=$PYTHON ./build-script/ubuntu_container_prep.sh"
-    - $DOCKER_SH "$MAKE lint PYTHON=python3.7"
-    - $DOCKER_SH "$MAKE pytest PYTHON=python3.6"
+    - $DOCKER_SH "$MAKE lint pytest PYTHON=$PYTHON"
   - name: test-functional-alpine
     env: DOCKER_SH="docker exec -t backup-test sh -vxc" DOCKER_IMAGE=alpine:latest
       PYTHON=python3.7 MAKE="make --trace" AWS_DEFAULT_REGION=us-east-2
