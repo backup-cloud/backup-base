@@ -4,6 +4,7 @@ import boto3  # type: ignore
 import os
 import sys
 import gpg  # type: ignore
+import re
 from tempfile import TemporaryDirectory, mkdtemp, NamedTemporaryFile
 from botocore.exceptions import ClientError  # type: ignore
 from typing import Dict, List, Generator, Tuple
@@ -372,8 +373,8 @@ backup-cloud-upload {SSM_PATH} $1 $2
         We delete the initial slash and any double slashes from any
         path to stop empty folder names coming through
         """
-        # re.sub("/{2,}", "/", dest_path)
-        # re.sub("/", "", dest_path)
+        dest_path = re.sub("/{2,}", "/", dest_path)
+        dest_path = re.sub("^/", "", dest_path)
 
         eprint(
             "uploading "
