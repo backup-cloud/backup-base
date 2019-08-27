@@ -18,12 +18,13 @@ upload and encrypted backup of our data to an S3 bucket.
          Then a backup object should be created in the S3 destination bucket
           and if I decrypt that file the content with the private key it should match the original
     
-    Scenario: store encrypted backup in S3 with incorrect s3_path
+    Scenario: store encrypted backup in S3 with slash ('/') prefixed s3_path
         Given I have configured my settings in SSM
           and I have a file in S3 to backup
-          and I have a backup context configured with matching users with incorrect s3_path
+          and I have a backup context configured with the s3_path starting with a '/'
          When I request a backup of that file using the context
          Then a backup object should be created in the S3 destination bucket
+          and the object path should not contain extraneous slashes
           and if I decrypt that file the content with the private key it should match the original
 
     @future

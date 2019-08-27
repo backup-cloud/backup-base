@@ -6,7 +6,14 @@ import random
 import string
 from subprocess import run
 from behave_ansible import call_ansible_step
-from hamcrest import assert_that, greater_than
+from hamcrest import (
+    assert_that,
+    greater_than,
+    not_,
+    starts_with,
+    contains_string,
+    ends_with,
+)
 import sys
 from typing import Any
 
@@ -84,4 +91,23 @@ def step_impl_6(context) -> None:
         len(context.encrypted_file_contents),
         greater_than(15),
         "backup contents from s3 too short to be real",
+    )
+
+
+@then(u"the object path should not contain extraneous slashes")
+def step_impl_7(context) -> None:
+    assert_that(
+        context.s3_dest_path,
+        not_(starts_with("/")),
+        "failed to clean starting slash ('/') from S3 path",
+    )
+    assert_that(
+        context.s3_dest_path,
+        not_(contains_string("//")),
+        "invalid double slash ('//') in S3 path",
+    )
+    assert_that(
+        context.s3_dest_path,
+        not_(ends_with("/")),
+        "failed to clean ending slash ('/') from S3 path",
     )
