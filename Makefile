@@ -30,13 +30,13 @@ all: develop prepare lint build test
 
 test: develop build pytest behave doctest
 
-behave: behave-aws behave-mocked
-
-behave-aws: develop checkvars
-	$(BEHAVE) --stage=aws --tags=-future --tags=-mocked
+behave: behave-mocked behave-aws
 
 behave-mocked: develop checkvars
 	$(BEHAVE) --stage=mocked --tags=-future --tags=mocked
+
+behave-aws: develop checkvars
+	$(BEHAVE) --stage=aws --tags=-future --tags=-mocked
 
 # develop is needed to install scripts that are called during testing 
 develop: .develop.makestamp
@@ -86,9 +86,13 @@ prep_test: .prepare-test.makestamp
 	ansible-playbook -vvv prepare-test-enc-backup.yml --extra-vars=aws_account_name=$(AWS_ACCOUNT_NAME)
 	touch $@
 
-wip: develop build
-	$(BEHAVE) --stage=aws --tags=-future --tags=-mocked
-	$(BEHAVE) --stage=mocked --tags=-future --tags=mocked
+wip: wip-mocked wip-aws
+
+wip-aws: develop build
+	$(BEHAVE) --stage=aws --tags=~mocked --wip
+
+wip-mocked: develop build
+	$(BEHAVE) --stage=mocked --tags=mocked --wip
 
 build:
 
@@ -104,4 +108,4 @@ clean:
 
 fix:
 	find . -name '*.py' | xargs black --line-length=100 
-.PHONY: all develop test behave behave-aws behave-mocked checkvars pytest doctest pip_install prepare prep_test prepare_account wip build lint testfix fix clean
+.PHONY: all develop test behave behave-aws behave-mocked checkvars pytest doctest pip_install prepare prep_test prepare_account wip wip-aws wip-mocked build lint testfix fix clean
